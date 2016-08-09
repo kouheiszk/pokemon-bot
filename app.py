@@ -28,11 +28,9 @@ def main():
 
     api = Api(config.location)
     api.authenticate(config.auth_service, config.username, config.password)
-    player = api.get_player()
     inventory = api.get_inventory()
-    log.debug(player.username)
+    log.debug("#####################################")
     log.debug(inventory)
-
 
 if __name__ == "__main__":
     main()

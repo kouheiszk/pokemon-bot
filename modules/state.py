@@ -1,16 +1,19 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+from modules.badges import Badges
+from modules.eggs import Eggs
 from modules.inventory import Inventory
 from modules.player import Player
+from modules.settings import Settings
 
 
 class State(object):
     def __init__(self):
         self.player = Player()
-        # self.eggs = Eggs()
+        self.eggs = Eggs()
         self.inventory = Inventory()
-        # self.badges = Badges()
-        # self.settings = Settings()
+        self.badges = Badges()
+        self.settings = Settings()
         # self.mapObjects = MapObjects()
         # self.fortSearch = FortSearch()
         # self.fortDetails = FortDetails()

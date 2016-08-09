@@ -27,12 +27,43 @@ class Api(object):
         if not self._api.login(auth_service, username, password, app_simulation=True):
             raise GeneralPokemonBotException("Invalid Authentication Info")
 
-    def get_player(self):
-        response_dict = self._api.get_player()
+    def get_default_request(self):
+        req = self._api.create_request()
+        req.get_hatched_eggs()
+        req.get_inventory()
+        req.check_awarded_badges()
+        req.download_settings()
+        return req
+
+    def parse_default_request_response(self, response_dict):
+        self._state.eggs.parse_response_dic(response_dict)
+        self._state.inventory.parse_response_dic(response_dict)
+        self._state.badges.parse_response_dic(response_dict)
+        self._state.settings.parse_response_dic(response_dict)
+
+    def get_profile(self):
+        req = self.get_default_request()
+        req.get_player()
+        response_dict = req.call()
         self._state.player.parse_response_dic(response_dict)
+        self.parse_default_request_response(response_dict)
+
+    def get_player(self):
+        self.get_profile()
         return self._state.player
 
+    def get_eggs(self):
+        self.get_profile()
+        return self._state.eggs
+
     def get_inventory(self):
-        response_dict = self._api.get_inventory()
-        self._state.inventory.parse_response_dic(response_dict)
+        self.get_profile()
         return self._state.inventory
+
+    def get_badges(self):
+        self.get_profile()
+        return self._state.badges
+
+    def get_settings(self):
+        self.get_profile()
+        return self._state.settings
