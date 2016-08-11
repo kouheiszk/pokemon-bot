@@ -35,7 +35,7 @@ class Config(object):
 
         # Passed in arguments shoud trump
         for key in config.__dict__:
-            if key in load and config.__dict__[key] == None:
+            if key in load and config.__dict__[key] is None:
                 config.__dict__[key] = str(load[key])
 
         if config.__dict__["password"] is None:
@@ -49,3 +49,6 @@ class Config(object):
 
     def __getattr__(self, attr):
         return self.config.__dict__[attr]
+
+
+config = Config()

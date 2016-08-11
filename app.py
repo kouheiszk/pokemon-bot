@@ -3,7 +3,7 @@
 import logging
 
 from modules.api import Api
-from modules.config import Config
+from modules.config import config
 
 log = logging.getLogger(__name__)
 
@@ -17,9 +17,6 @@ def main():
     logging.getLogger("pgoapi").setLevel(logging.INFO)
     logging.getLogger("rpc_api").setLevel(logging.INFO)
 
-    # コンフィグを取得
-    config = Config()
-
     # コンフィグ情報を元に各ライブラリのログレベルを調整
     if config.debug:
         logging.getLogger("requests").setLevel(logging.DEBUG)
@@ -31,6 +28,7 @@ def main():
     inventory = api.get_inventory()
     log.debug("#####################################")
     log.debug(inventory)
+
 
 if __name__ == "__main__":
     main()
