@@ -1,31 +1,40 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 import logging
-import pprint
 
-from pgoapi import pgoapi
+from pgoapi import pgoapi, utilities
 
 from modules.exceptions import GeneralPokemonBotException
 from modules.location import Location
-from modules.player import Player
 from modules.state import State
+from modules.utilities import get_encryption_lib_path
 
 log = logging.getLogger(__name__)
 
 
 class Api(object):
     def __init__(self, locationLookup=None):
-        location = Location(locationLookup)
+        self.location = Location(locationLookup)
 
         self._api = pgoapi.PGoApi()
-        self._api.set_position(*location.get_position())
+        self._api.set_position(*self.location.get_position())
 
         self._state = State()
 
     def authenticate(self, auth_service, username, password):
-        # ログインする
-        if not self._api.login(auth_service, username, password, app_simulation=True):
-            raise GeneralPokemonBotException("Invalid Authentication Info")
+        # # ログインする
+        # if not self._api.login(auth_service, username, password, app_simulation=True):
+        #     raise GeneralPokemonBotException("Invalid Authentication Info")
+
+        # Check if we have the proper encryption library file and get its path
+        encryption_lib_path = get_encryption_lib_path()
+        if encryption_lib_path is "":
+            raise GeneralPokemonBotException("Encryption library file is required")
+
+        self._api.set_authentication(provider=auth_service, username=username, password=password)
+
+        # provide the path for your encrypt dll
+        self._api.activate_signature(encryption_lib_path)
 
     def get_default_request(self):
         req = self._api.create_request()
@@ -67,3 +76,13 @@ class Api(object):
     def get_settings(self):
         self.get_profile()
         return self._state.settings
+
+    def get_map_objects(self):
+        cell_ids = self.location.get_cell_ids()
+        timestamps = [0, ] * len(cell_ids)
+        response_dict = self._api.get_map_objects(latitude=utilities.f2i(self.location.latitude),
+                                                  longitude=utilities.f2i(self.location.longitude),
+                                                  since_timestamp_ms=timestamps,
+                                                  cell_id=cell_ids)
+        self._state.map_objects.parse_response_dic(response_dict)
+        return self._state.map_objects

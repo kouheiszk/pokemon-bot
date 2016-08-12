@@ -3,6 +3,7 @@
 from modules.badges import Badges
 from modules.eggs import Eggs
 from modules.inventory import Inventory
+from modules.map_objects import MapObjects
 from modules.player import Player
 from modules.settings import Settings
 
@@ -14,7 +15,7 @@ class State(object):
         self.inventory = Inventory()
         self.badges = Badges()
         self.settings = Settings()
-        # self.mapObjects = MapObjects()
+        self.map_objects = MapObjects()
         # self.fortSearch = FortSearch()
         # self.fortDetails = FortDetails()
         # self.encounter = Encounter()
