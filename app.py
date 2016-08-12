@@ -34,11 +34,11 @@ if not hasattr(pgoapi, "__version__") or StrictVersion(pgoapi.__version__) < Str
     sys.exit(1)
 
 
-def clean_pokemon(api, threshold_cp=50, delay=5):
+def clean_pokemon(api, inventory, threshold_cp=50, delay=5):
     logging.info("Cleaning out Pokemon...")
     evolables = [pokedex.PIDGEY, pokedex.RATTATA, pokedex.ZUBAT]
     to_evolve = {evolve: [] for evolve in evolables}
-    for pokemon in api.inventory.party:
+    for pokemon in inventory.party:
         # If low cp, throw away
         if pokemon.get("cp") < threshold_cp:
             # It makes more sense to evolve some,
@@ -49,16 +49,16 @@ def clean_pokemon(api, threshold_cp=50, delay=5):
 
             # Get rid of low CP, low evolve value
             log.info("Releasing %s" % pokedex[pokemon.get("pokemon_id")])
-            api.release_pokemon(pokemon)  # FIXME
+            api.release_pokemon(pokemon)
             time.sleep(delay)
 
     # Evolve those we want
     for evolve in evolables:
         # if we don't have any candies of that type
         # e.g. not caught that pokemon yet
-        if evolve not in api.inventory.candies:
+        if evolve not in inventory.candies:
             continue
-        candies = api.inventory.candies[evolve]
+        candies = inventory.candies[evolve]
         pokemons = to_evolve[evolve]
         # release for optimal candies
         while candies // pokedex.evolves[evolve] < len(pokemons):
@@ -71,21 +71,21 @@ def clean_pokemon(api, threshold_cp=50, delay=5):
         # evolve remainder
         for pokemon in pokemons:
             log.info("Evolving %s" % pokedex[pokemon.get("pokemon_id")])
-            log.info(api.evolve_pokemon(pokemon))  # FIXME
+            log.info(api.evolve_pokemon(pokemon))
             time.sleep(delay)
             api.release_pokemon(pokemon)
             time.sleep(delay)
 
 
-def clean_inventory(api, delay=5):
+def clean_inventory(api, inventory, delay=5):
     logging.info("Cleaning out Inventory...")
-    bag = api.inventory.bag
+    bag = inventory.bag
 
     # Clear out all of a crtain type
     tossable = [items.POTION, items.SUPER_POTION, items.REVIVE]
     for toss in tossable:
         if toss in bag and bag[toss]:
-            api.recycle_item(toss, count=bag[toss])  # FIXME
+            api.recycle_inventory_item(toss, count=bag[toss])
             time.sleep(delay)
 
     # Limit a certain type
@@ -97,36 +97,36 @@ def clean_inventory(api, delay=5):
     }
     for limit in limited:
         if limit in bag and bag[limit] > limited[limit]:
-            api.recycle_item(limit, count=(bag[limit] - limited[limit]))
+            api.recycle_inventory_item(limit, count=(bag[limit] - limited[limit]))
             time.sleep(delay)
 
 
-def walk_and_catch(api, pokemon, delay=2):
+def walk_and_catch(api, pokemon, inventory, delay=2):
     if pokemon:
         log.info("Catching %s:" % pokedex[pokemon.get("pokemon_id")])
         api.walk_to(pokemon.latitude, pokemon.longitude, step=3.2)
         time.sleep(delay)
-        result = encounter_and_catch(api, pokemon)
+        result = encounter_and_catch(api, pokemon, inventory)
         log.info(result)
         return result
     else:
         return None
 
 
-def encounter_and_catch(api, pokemon, threshold_p=0.5, limit=5, delay=2):
+def encounter_and_catch(api, pokemon, inventory, threshold_p=0.5, limit=5, delay=2):
     # Start encounter
-    encounter = api.encounter_pokemon(pokemon)  # FIXME
+    encounter = api.encounter_pokemon(pokemon)
     time.sleep(config.general_cooldown_time / 2)
 
     # If party full
-    if encounter.status == encounter.POKEMON_INVENTORY_FULL:  # FIXME
+    if encounter.status == encounter.POKEMON_INVENTORY_FULL:
         raise GeneralPokemonBotException("Can't catch! Party is full!")
 
     # Grab needed data from proto
     chances = encounter.capture_probability.capture_probability
     balls = encounter.capture_probability.pokeball_type
     balls = balls or [items.POKE_BALL, items.GREAT_BALL, items.ULTRA_BALL]
-    bag = api.inventory.bag
+    bag = inventory.bag
 
     # Have we used a razz berry yet?
     berried = False
@@ -155,7 +155,7 @@ def encounter_and_catch(api, pokemon, threshold_p=0.5, limit=5, delay=2):
         if best_ball == items.UNKNOWN:
             if not berried and bag.get(items.RAZZ_BERRY, 0) > 0:
                 logging.info("Using a RAZZ_BERRY")
-                api.use_item_capture(items.RAZZ_BERRY, pokemon)  # FIXME
+                api.use_item_capture(items.RAZZ_BERRY, pokemon)
                 berried = True
                 time.sleep(delay + random.randint(1, 3))
                 continue
@@ -168,7 +168,7 @@ def encounter_and_catch(api, pokemon, threshold_p=0.5, limit=5, delay=2):
 
         # Try to catch it!!
         log.info("Using a %s" % items[best_ball])
-        attempt = api.catch_pokemon(pokemon, best_ball)  # FIXME
+        attempt = api.catch_pokemon(pokemon, best_ball)
         time.sleep(delay)
 
         # Success or run away
@@ -180,7 +180,7 @@ def encounter_and_catch(api, pokemon, threshold_p=0.5, limit=5, delay=2):
             if count == 0:
                 log.info("Possible soft ban.")
             else:
-                log.info("Pokemon fled at %dth attempt" % (count + 1))
+                log.info("Pokemon fled at {}th attempt".format(count + 1))
             return attempt
 
         # Only try up to x attempts
@@ -193,20 +193,18 @@ def encounter_and_catch(api, pokemon, threshold_p=0.5, limit=5, delay=2):
 # Walk to fort and spin
 def walk_and_spin(api, pokestop, delay=2):
     if pokestop:
-        details = api.get_fort_details(pokestop)  # FIXME
-        log.info("Spinning the Fort \"%s\":" % details.get("name"))
+        details = api.get_fort_details(pokestop)
+        log.info("Spinning the Fort \"{}\":".format(details.name))
         time.sleep(delay)
 
-        api.walk_to(pokestop.get("latitude"), pokestop.get("longitude"), step=3.2)  # FIXME
+        api.walk_to(pokestop.get("latitude"), pokestop.get("longitude"), step=3.2)
         time.sleep(delay)
 
-        log.info(api.get_fort_search(pokestop))  # FIXME
+        log.info(api.get_fort_search(pokestop))
         time.sleep(delay)
 
 
-def set_egg(api):
-    inventory = api.inventory
-
+def set_egg(api, inventory):
     # If no eggs, nothing we can do
     if len(inventory.eggs) == 0:
         return None
@@ -228,40 +226,45 @@ def run(api):
         map_objects = api.get_map_objects()
         log.info(map_objects)
         time.sleep(config.general_cooldown_time)
-        return
 
         # 不要な持ち物を削除
-        clean_pokemon(api, threshold_cp=500)
-        clean_inventory(api)
+        clean_pokemon(api, inventory, threshold_cp=500)
+        clean_inventory(api, inventory)
 
         try:
             # 捕まえることができるポケモンを捕まえる
-            for pokemon in map_objects.catchable_pokemons:
-                if walk_and_catch(api, pokemon):
+            # TODO catchable_pokemons とか配列にする
+            for encounter_id in map_objects.catchable_pokemons:
+                pokemon = map_objects.catchable_pokemons[encounter_id]
+                if walk_and_catch(api, pokemon, inventory):
                     # 捕まえたポケモンを削除する
-                    encounter_id = pokemon.get("encounter_id")
                     if encounter_id in map_objects.wild_pokemons:
                         del map_objects.wild_pokemons[encounter_id]
 
             # まだ捕まえていない野生のポケモンを捕まえる
-            for pokemon in map_objects.wild_pokemons:
+            for encounter_id in map_objects.wild_pokemons:
+                pokemon = map_objects.wild_pokemons[encounter_id]
                 walk_and_catch(api, pokemon)
 
-            for pokestop in map_objects.pokestops:
+            for pokestop_id in map_objects.pokestops:
+                pokestop = map_objects.pokestops[pokestop_id]
                 walk_and_spin(api, pokestop)
-                time.sleep(config.general_cooldown_time / 2)
+
+                # TODO 卵をチェックする
+
+            sys.exit(0)
 
             cooldown = 10
 
         # Catch problems and reauthenticate
         except GeneralPokemonBotException as e:
-            log.critical('GeneralPokemonBotException raised: %s', e)
+            log.critical('GeneralPokemonBotException raised: {0} \n {1}'.format(e, traceback.format_exc()))
             # 再認証したほうがいいかも？
             time.sleep(cooldown)
             cooldown *= 2
 
         except Exception as e:
-            log.critical('Exception raised: %s', e)
+            log.critical('Exception raised: : {0} \n {1}'.format(e, traceback.format_exc()))
             # 再認証したほうがいいかも？
             time.sleep(cooldown)
             cooldown *= 2

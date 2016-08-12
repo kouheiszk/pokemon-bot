@@ -3,7 +3,7 @@
 import logging
 import random
 
-import gpxpy
+import gpxpy.geo
 from pgoapi import utilities
 
 from modules.exceptions import GeneralPokemonBotException
@@ -31,17 +31,13 @@ class Location(object):
         self.longitude = longitude + random.uniform(0.00001, 0.00005)
         self.altitude = altitude
 
-        log.debug('Coordinates: {} {} {}'.format(
-            self.latitude,
-            self.longitude,
-            self.altitude
-        ))
+        log.info('Coordinates: {} {} {}'.format(self.latitude, self.longitude, self.altitude))
 
     def get_position(self):
         return self.latitude, self.longitude, self.altitude
 
-    def get_cell_ids(self):
-        return utilities.get_cell_ids(self.latitude, self.longitude)
+    def get_cell_ids(self, radius=1000):
+        return utilities.get_cell_ids(self.latitude, self.longitude, radius)
 
     @staticmethod
     def get_distance(*coords):
