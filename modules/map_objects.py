@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 
 from modules.pokedex import pokedex
 
-log = logging.getLogger(__name__)
+log = logging.getLogger("pokemon_bot")
 
 
 class MapObjects(object):

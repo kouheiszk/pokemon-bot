@@ -3,7 +3,7 @@
 import logging
 import pprint
 
-log = logging.getLogger(__name__)
+log = logging.getLogger("pokemon_bot")
 
 
 class Badges(object):

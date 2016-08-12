@@ -6,7 +6,7 @@ import platform
 
 import sys
 
-log = logging.getLogger(__name__)
+log = logging.getLogger("pokemon_bot")
 
 
 # @see https://github.com/PokemonGoMap/PokemonGo-Map/blob/83fab06f4fea54a58d0b0cebb95bed24551037c7/pogom/utils.py#L302

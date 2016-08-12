@@ -1,13 +1,14 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 import logging
+import random
 
+import gpxpy
 from pgoapi import utilities
-from s2sphere import CellId, LatLng
 
 from modules.exceptions import GeneralPokemonBotException
 
-log = logging.getLogger(__name__)
+log = logging.getLogger("pokemon_bot")
 
 
 class Location(object):
@@ -23,15 +24,25 @@ class Location(object):
 
     def set_postioin_by_name(self, location_lookup):
         position = utilities.get_pos_by_name(location_lookup)
-        self.latitude, self.longitude, self.altitude = position
+        self.set_position(*position)
 
     def set_position(self, latitude, longitude, altitude=0):
-        self.latitude = latitude
-        self.longitude = longitude
+        self.latitude = latitude + random.uniform(0.00001, 0.00005)
+        self.longitude = longitude + random.uniform(0.00001, 0.00005)
         self.altitude = altitude
+
+        log.debug('Coordinates: {} {} {}'.format(
+            self.latitude,
+            self.longitude,
+            self.altitude
+        ))
 
     def get_position(self):
         return self.latitude, self.longitude, self.altitude
 
     def get_cell_ids(self):
         return utilities.get_cell_ids(self.latitude, self.longitude)
+
+    @staticmethod
+    def get_distance(*coords):
+        return gpxpy.geo.haversine_distance(*coords)

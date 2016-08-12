@@ -6,7 +6,7 @@ import pprint
 from modules.item import items
 from modules.pokedex import pokedex
 
-log = logging.getLogger(__name__)
+log = logging.getLogger("pokemon_bot")
 
 
 class Inventory(object):

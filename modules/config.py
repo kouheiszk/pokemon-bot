@@ -8,7 +8,7 @@ import os
 
 from modules.exceptions import GeneralPokemonBotException
 
-log = logging.getLogger(__name__)
+log = logging.getLogger("pokemon_bot")
 
 
 class Config(object):
@@ -46,6 +46,7 @@ class Config(object):
             raise GeneralPokemonBotException("Invalid Auth service specified! ('ptc' or 'google')")
 
         self.config = config
+        self.general_cooldown_time = 10  # 10 sec
 
     def __getattr__(self, attr):
         return self.config.__dict__[attr]
