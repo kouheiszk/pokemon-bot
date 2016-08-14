@@ -5,7 +5,6 @@ import pprint
 
 import sys
 
-import time
 from pgoapi import pgoapi, utilities
 
 from modules.exceptions import GeneralPokemonBotException
@@ -28,10 +27,6 @@ class Api(object):
         self._state = State()
 
     def authenticate(self, auth_service, username, password):
-        # # ログインする
-        # if not self._api.login(auth_service, username, password, app_simulation=True):
-        #     raise GeneralPokemonBotException("Invalid Authentication Info")
-
         # Check if we have the proper encryption library file and get its path
         encryption_lib_path = get_encryption_lib_path()
         if encryption_lib_path is "":
@@ -161,37 +156,3 @@ class Api(object):
     def set_coordinates(self, latitude, longitude):
         self.location.set_position(latitude, longitude)
         self.get_map_objects(radius=1)
-
-    # ゆっくり歩く
-    def walk_to(self, olatitude, olongitude, epsilon=10, step=7.5, delay=10):
-        if step >= epsilon:
-            raise GeneralPokemonBotException("Walk may never converge")
-
-        # Calculate distance to position
-        latitude, longitude, _ = self.location.get_position()
-        dist = closest = Location.get_distance(latitude, longitude, olatitude, olongitude)
-
-        # Run walk
-        divisions = closest / step
-        d_lat = (latitude - olatitude) / divisions
-        d_lon = (longitude - olongitude) / divisions
-
-        log.info("Walking %f meters. This will take ~%f seconds..." % (dist, dist / step))
-
-        steps = 1
-        while dist > epsilon:
-            log.debug("%f m -> %f m away", closest - dist, closest)
-            latitude -= d_lat
-            longitude -= d_lon
-            steps %= delay
-            if steps == 0:
-                self.location.set_position(latitude, longitude)
-            time.sleep(1)
-            dist = Location.get_distance(latitude, longitude, olatitude, olongitude)
-            steps += 1
-
-        # Finalize walk
-        steps -= 1
-        if steps % delay > 0:
-            time.sleep(delay - steps)
-            self.location.set_position(latitude, longitude)

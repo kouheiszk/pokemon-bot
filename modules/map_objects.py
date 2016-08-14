@@ -6,6 +6,7 @@ import pprint
 from datetime import datetime, timedelta
 
 from modules.pokedex import pokedex
+from modules.pokemon import Pokemon
 
 log = logging.getLogger("pokemon_bot")
 
@@ -13,20 +14,21 @@ log = logging.getLogger("pokemon_bot")
 class MapObjects(object):
     def __init__(self, initial_dict=None):
         self._dict = {}
-        self.wild_pokemons = {}
-        self.catchable_pokemons = {}
-        self.pokestops = {}
-        self.gyms = {}
+        self.wild_pokemons = []
+        self.catchable_pokemons = []
+        self.pokestops = []
+        self.gyms = []
+        self.catched_pokemon_ids = []
 
         if initial_dict is None:
             initial_dict = {}
         self.parse_response_dic(initial_dict)
 
     def parse_response_dic(self, response_dict):
-        wild_pokemons = {}
-        catchable_pokemons = {}
-        pokestops = {}
-        gyms = {}
+        wild_pokemons = []
+        catchable_pokemons = []
+        pokestops = []
+        gyms = []
 
         self._dict = response_dict.get("responses", {}).get("GET_MAP_OBJECTS", {})
         if bool(self._dict):
@@ -35,20 +37,10 @@ class MapObjects(object):
 
             for cell in self.cells():
                 for wp in cell.get("wild_pokemons", []):
-                    wp["pokemon_id"] = wp.get("pokemon_id", wp.get("pokemon_data", {}).get("pokemon_id"))
-                    wp["disappear_time"] = datetime.utcfromtimestamp(
-                        (wp["last_modified_timestamp_ms"] + wp["time_till_hidden_ms"]) / 1000.0)
-                    wp["rarity"] = pokedex.get_rarity_by_id(wp["pokemon_id"])
-
-                    wild_pokemons[wp['encounter_id']] = wp
+                    wild_pokemons.append(Pokemon(wp))
 
                 for cp in cell.get("catchable_pokemons", []):
-                    cp["pokemon_id"] = cp.get("pokemon_id", cp.get("pokemon_data", {}).get("pokemon_id"))
-                    cp["expiration_time"] = datetime.utcfromtimestamp(
-                        (cp["expiration_timestamp_ms"]) / 1000.0)
-                    cp["rarity"] = pokedex.get_rarity_by_id(wp["pokemon_id"])
-
-                    catchable_pokemons[cp['encounter_id']] = cp
+                    catchable_pokemons.append(Pokemon(cp))
 
                 for f in cell.get("forts", []):
                     if f.get("type") == 1:  # ポケストップ
@@ -67,7 +59,7 @@ class MapObjects(object):
                         pokestop["last_modified"] = datetime.utcfromtimestamp(
                             f["last_modified_timestamp_ms"] / 1000.0)
 
-                        pokestops[f["id"]] = pokestop
+                        pokestops.append(pokestop)
 
                     elif f.get("type") is None:  # ジム
                         gym = f
@@ -78,7 +70,7 @@ class MapObjects(object):
                         gym["last_modified"] = datetime.utcfromtimestamp(
                             f["last_modified_timestamp_ms"] / 1000.0)
 
-                        gyms[f["id"]] = gym
+                        gyms.append(gym)
 
         self.wild_pokemons = wild_pokemons
         self.catchable_pokemons = catchable_pokemons
@@ -87,6 +79,9 @@ class MapObjects(object):
 
     def cells(self):
         return self._dict.get("map_cells", [])
+
+    def catched(self, pokemon):
+        self.catched_pokemon_ids.append(pokemon.pokemon_id)
 
     def __getattr__(self, attr):
         return self._dict.get(attr)
