@@ -50,37 +50,19 @@ def main():
 
     # Run the bot
     while True:
-        inventory = session.get_inventory()
-        log.info(inventory)
-
-        map_objects = session.get_map_objects()
-        log.info(map_objects)
-
-        # 不要な持ち物を削除
-        session.clean_pokemon(threshold_cp=500)
-        session.clean_inventory()
-
-        sys.exit(0)
-
         try:
-            # 捕まえることができるポケモンを捕まえる
-            # TODO catchable_pokemons とか配列にする
-            for pokemon in map_objects.catchable_pokemons:
-                if walk_and_catch(api, pokemon, inventory):
-                    map_objects.catched(catched_pokemons)
-                    # 捕まえたポケモンを削除する
-                    if encounter_id in map_objects.wild_pokemons:
-                        del map_objects.wild_pokemons[encounter_id]
+            inventory = session.get_inventory()
+            log.info(inventory)
 
-            # まだ捕まえていない野生のポケモンを捕まえる
-            for pokemon in map_objects.wild_pokemons:
-                walk_and_catch(api, pokemon)
+            map_objects = session.get_map_objects()
+            log.info(map_objects)
 
-            for pokestop in map_objects.pokestops:
-                walk_and_spin(api, pokestop)
+            # 不要な持ち物を削除
+            session.clean_pokemon(threshold_cp=500)
+            session.clean_inventory()
 
-                # TODO 卵をチェックする
-
+            # 捕まえる
+            session.walk_and_catch_and_spin(map_objects)
             sys.exit(0)
 
             cooldown = 10

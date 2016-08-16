@@ -20,6 +20,7 @@ class State(object):
         # self.fortSearch = FortSearch()
         # self.fortDetails = FortDetails()
         # self.encounter = Encounter()
+        self.catch = Catch()
         # self.itemCapture = ItemCapture()
         # self.itemPotion = ItemPotion()
         # self.itemRevive = ItemRevive()

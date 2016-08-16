@@ -4,6 +4,8 @@ import logging
 
 import time
 
+import sys
+
 from modules.api import Api
 from modules.exceptions import GeneralPokemonBotException
 from modules.item import items
@@ -35,6 +37,22 @@ class Session(object):
         self._api.get_map_objects(self._state)
         time.sleep(delay)
         return self._state.map_objects
+
+    def walk_and_catch_and_spin(self, map_objects, catch=True, spin=True):
+        if catch:
+            for pokemon in map_objects.catchable_pokemons:
+                self.walk_and_catch(pokemon)
+
+            for pokemon in map_objects.wild_pokemons:
+                self.walk_and_catch(pokemon)
+
+            sys.exit(0)
+
+        if spin:
+            for pokestop in map_objects.pokestops:
+                self.walk_and_spin(pokestop)
+
+                sys.exit(0)
 
     def clean_pokemon(self, threshold_cp=50, delay=5):
         log.info("Cleaning out Pokemon...")
@@ -105,6 +123,10 @@ class Session(object):
                 time.sleep(delay)
 
     def walk_and_catch(self, pokemon, delay=2):
+        # 歩き出す前にポケモンを捕まえられるかチェック
+        if not self._state.catch.is_catched_pokemon(pokemon):
+            return None
+
         if pokemon:
             log.info("Catching {}:".format(pokedex[pokemon.pokemon_id]))
             self.walk_to(pokemon.latitude, pokemon.longitude, step=3.2)
@@ -114,6 +136,88 @@ class Session(object):
             return result
         else:
             return None
+
+    def encounter_and_catch(self, pokemon, inventory, threshold_p=0.5, limit=5, delay=2):
+        # ポケモンを捕まえられるかチェック
+        if not self._state.catch.is_catched_pokemon(pokemon):
+            return None
+
+        self._state.catch.catches.append(pokemon)
+
+        # Start encounter
+        encounter = self._api.encounter_pokemon(pokemon)
+        time.sleep(delay)
+
+        # If party full
+        if encounter.status == encounter.POKEMON_INVENTORY_FULL:
+            raise GeneralPokemonBotException("Can't catch! Party is full!")
+
+        # Grab needed data from proto
+        chances = encounter.capture_probability.capture_probability
+        balls = encounter.capture_probability.pokeball_type
+        balls = balls or [items.POKE_BALL, items.GREAT_BALL, items.ULTRA_BALL]
+        bag = inventory.bag
+
+        # Have we used a razz berry yet?
+        berried = False
+
+        # Make sure we aren't oer limit
+        count = 0
+
+        # Attempt catch
+        while True:
+            best_ball = items.UNKNOWN
+            alt_ball = items.UNKNOWN
+
+            # Check for balls and see if we pass
+            # wanted threshold
+            print(balls)
+            for i, ball in enumerate(balls):
+                print(bag.get(ball, 0) > 0)
+                if bag.get(ball, 0) > 0:
+                    alt_ball = ball
+                    if chances[i] > threshold_p:
+                        best_ball = ball
+                        break
+
+            # If we can't determine a ball, try a berry
+            # or use a lower class ball
+            if best_ball == items.UNKNOWN:
+                if not berried and bag.get(items.RAZZ_BERRY, 0) > 0:
+                    logging.info("Using a RAZZ_BERRY")
+                    self._api.use_item_capture(items.RAZZ_BERRY, pokemon)
+                    berried = True
+                    time.sleep(delay + random.randint(1, 3))
+                    continue
+
+                # if no alt ball, there are no balls
+                elif alt_ball == items.UNKNOWN:
+                    raise GeneralPokemonBotException("Out of usable balls")
+                else:
+                    best_ball = alt_ball
+
+            # Try to catch it!!
+            log.info("Using a %s" % items[best_ball])
+            attempt = self._api.catch_pokemon(pokemon, best_ball)
+            time.sleep(delay)
+
+            # Success or run away
+            if attempt.status == 1:
+                return attempt
+
+            # CATCH_FLEE is bad news
+            if attempt.status == 3:
+                if count == 0:
+                    log.info("Possible soft ban.")
+                else:
+                    log.info("Pokemon fled at {}th attempt".format(count + 1))
+                return attempt
+
+            # Only try up to x attempts
+            count += 1
+            if count >= limit:
+                log.info("Over catch limit")
+                return None
 
     # Walk to fort and spin
     def walk_and_spin(self, pokestop, delay=2):
@@ -139,6 +243,8 @@ class Session(object):
 
     # ゆっくり歩く
     def walk_to(self, olatitude, olongitude, epsilon=10, step=7.5, delay=10):
+        # TODO 卵をチェックする
+
         if step >= epsilon:
             raise GeneralPokemonBotException("Walk may never converge")
 
@@ -151,11 +257,11 @@ class Session(object):
         d_lat = (latitude - olatitude) / divisions
         d_lon = (longitude - olongitude) / divisions
 
-        log.info("Walking %f meters. This will take ~%f seconds..." % (dist, dist / step))
+        log.info("Walking {0} meters. This will take ~{1} seconds...".format(dist, dist / step))
 
         steps = 1
         while dist > epsilon:
-            log.debug("%f m -> %f m away", closest - dist, closest)
+            log.debug("{} m -> {} m away".format(closest - dist, closest))
             latitude -= d_lat
             longitude -= d_lon
             steps %= delay
