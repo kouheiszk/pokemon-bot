@@ -44,23 +44,23 @@ def main():
         logging.getLogger("rpc_api").setLevel(logging.DEBUG)
         logging.getLogger("pokemon_bot").setLevel(logging.DEBUG)
 
-    session = Session(config.auth_service, config.username, config.password, config.location)
+    session = Session(config.location)
+    session.authenticate(config.auth_service, config.username, config.password)
     cooldown = 10  # sec
 
     # Run the bot
     while True:
-        # FIXME sessionから取ってくる
-        inventory = api.get_inventory()
+        inventory = session.get_inventory()
         log.info(inventory)
-        time.sleep(config.general_cooldown_time)
 
-        map_objects = api.get_map_objects()
+        map_objects = session.get_map_objects()
         log.info(map_objects)
-        time.sleep(config.general_cooldown_time)
 
         # 不要な持ち物を削除
-        clean_pokemon(api, inventory, threshold_cp=500)
-        clean_inventory(api, inventory)
+        session.clean_pokemon(threshold_cp=500)
+        session.clean_inventory()
+
+        sys.exit(0)
 
         try:
             # 捕まえることができるポケモンを捕まえる

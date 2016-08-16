@@ -90,14 +90,12 @@ class MapObjects(object):
         s = "MapObjects:\n"
 
         s += "-- Wild Pokemons:\n"
-        for key in self.wild_pokemons:
-            pokemon = self.wild_pokemons[key]
-            s += "\t{0}: {1}\n".format(pokedex[pokemon["pokemon_id"]], pokemon)
+        for pokemon in self.wild_pokemons:
+            s += "\t{0}: {1}\n".format(pokedex[pokemon.pokemon_id], pokemon)
 
         s += "-- Catchable Pokemons:\n"
-        for key in self.catchable_pokemons:
-            pokemon = self.catchable_pokemons[key]
-            s += "\t{0}: {1}\n".format(pokedex[pokemon["pokemon_id"]], pokemon)
+        for pokemon in self.catchable_pokemons:
+            s += "\t{0}: {1}\n".format(pokedex[pokemon.pokemon_id], pokemon)
 
         s += "-- Pokestops:\n"
         s += "\t{0} stops\n".format(len(self.pokestops))

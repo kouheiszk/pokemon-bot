@@ -10,7 +10,7 @@ from modules.settings import Settings
 
 
 class State(object):
-    def __init__(self, api):
+    def __init__(self):
         self.player = Player()
         self.eggs = Eggs()
         self.inventory = Inventory()
@@ -20,7 +20,6 @@ class State(object):
         # self.fortSearch = FortSearch()
         # self.fortDetails = FortDetails()
         # self.encounter = Encounter()
-        self.catch = Catch(api)
         # self.itemCapture = ItemCapture()
         # self.itemPotion = ItemPotion()
         # self.itemRevive = ItemRevive()

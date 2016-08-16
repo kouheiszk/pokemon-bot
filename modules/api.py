@@ -11,20 +11,17 @@ from modules.exceptions import GeneralPokemonBotException
 from modules.fort import Fort
 from modules.item import items
 from modules.location import Location
-from modules.state import State
 from modules.utilities import get_encryption_lib_path
 
-log = logging.getLogger(__name__)
+log = logging.getLogger("pokemon_bot")
 
 
 class Api(object):
-    def __init__(self, locationLookup=None):
-        self.location = Location(locationLookup)
+    def __init__(self, location_lookup=None):
+        self.location = Location(location_lookup)
 
         self._api = pgoapi.PGoApi()
         self._api.set_position(*self.location.get_position())
-
-        self._state = State()
 
     def authenticate(self, auth_service, username, password):
         # Check if we have the proper encryption library file and get its path
@@ -45,55 +42,59 @@ class Api(object):
         req.download_settings()
         return req
 
-    def parse_default_request_response(self, response_dict):
-        self._state.eggs.parse_response_dic(response_dict)
-        self._state.inventory.parse_response_dic(response_dict)
-        self._state.badges.parse_response_dic(response_dict)
-        self._state.settings.parse_response_dic(response_dict)
+    def parse_default_request_response(self, state, response_dict):
+        state.eggs.parse_response_dic(response_dict)
+        state.inventory.parse_response_dic(response_dict)
+        state.badges.parse_response_dic(response_dict)
+        state.settings.parse_response_dic(response_dict)
 
-    def get_profile(self):
+    def get_profile(self, state):
         req = self.get_default_request()
         req.get_player()
         response_dict = req.call()
-        self._state.player.parse_response_dic(response_dict)
-        self.parse_default_request_response(response_dict)
+        state.player.parse_response_dic(response_dict)
+        self.parse_default_request_response(state, response_dict)
 
-    def get_player(self):
+    def get_player(self, state):
+        self.get_profile(state)
+        return state.player
+
+    def get_eggs(self, state):
         self.get_profile()
-        return self._state.player
+        return state.eggs
 
-    def get_eggs(self):
-        self.get_profile()
-        return self._state.eggs
+    def get_inventory(self, state):
+        self.get_profile(state)
+        return state.inventory
 
-    def get_inventory(self):
-        self.get_profile()
-        return self._state.inventory
+    def get_badges(self, state):
+        self.get_profile(state)
+        return state.badges
 
-    def get_badges(self):
-        self.get_profile()
-        return self._state.badges
+    def get_settings(self, state):
+        self.get_profile(state)
+        return state.settings
 
-    def get_settings(self):
-        self.get_profile()
-        return self._state.settings
-
-    def get_map_objects(self, radius=1000):
+    def get_map_objects(self, state, radius=1000):
         cell_ids = self.location.get_cell_ids(radius=radius)
         timestamps = [0, ] * len(cell_ids)
         response_dict = self._api.get_map_objects(latitude=utilities.f2i(self.location.latitude),
                                                   longitude=utilities.f2i(self.location.longitude),
                                                   since_timestamp_ms=timestamps,
                                                   cell_id=cell_ids)
-        self._state.map_objects.parse_response_dic(response_dict)
-        return self._state.map_objects
+        state.map_objects.parse_response_dic(response_dict)
+        return state.map_objects
 
     def release_pokemon(self, pokemon):
-        response_dict = self._api.release_pokemon(pokemon_id=pokemon.get("pokemon_id"))
+        response_dict = self._api.release_pokemon(pokemon_id=pokemon.id)
+        log.debug("Response dictionary (release_pokemon): \n\r{}"
+                  .format(pprint.PrettyPrinter(indent=4).pformat(response_dict)))
         return response_dict
 
     def evolve_pokemon(self, pokemon):
-        response_dict = self._api.evolve_pokemon(pokemon_id=pokemon.get("pokemon_id"))
+        response_dict = self._api.evolve_pokemon(pokemon_id=pokemon.id)
+        log.info("Response dictionary (evolve_pokemon): \n\r{}"
+                 .format(pprint.PrettyPrinter(indent=4).pformat(response_dict)))
         return response_dict
 
     def recycle_inventory_item(self, item_id, count=0):
@@ -101,11 +102,13 @@ class Api(object):
             response_dict = self._api.recycle_inventory_item(item_id=item_id, count=count)
         else:
             response_dict = None
+        log.info("Response dictionary (recycle_inventory_item): \n\r{}"
+                 .format(pprint.PrettyPrinter(indent=4).pformat(response_dict)))
         return response_dict
 
     def encounter_pokemon(self, pokemon):
-        response_dict = self._api.encounter(encounter_id=pokemon.get("encounter_id"),
-                                            spawn_point_id=pokemon.get("spawn_point_id"),
+        response_dict = self._api.encounter(encounter_id=pokemon.encounter_id,
+                                            spawn_point_id=pokemon.spawn_point_id,
                                             player_latitude=self.location.latitude,
                                             player_longitude=self.location.altitude)
 
@@ -117,16 +120,16 @@ class Api(object):
 
     def use_item_capture(self, item_id, pokemon):
         response_dict = self._api.use_item_capture(item_id=item_id,
-                                                   encounter_id=pokemon.get("encounter_id"),
-                                                   spawn_point_id=pokemon.get("spawn_point_id"))
+                                                   encounter_id=pokemon.encounter_id,
+                                                   spawn_point_id=pokemon.spawn_point_id)
         return response_dict
 
     def catch_pokemon(self, pokemon, pokeball=items.POKE_BALL, normalized_reticle_size=1.950, hit_pokemon=True,
                       spin_modifier=0.850, normalized_hit_position=1.0):
-        response_dict = self._api.catch_pokemon(encounter_id=pokemon.get("encounter_id"),
+        response_dict = self._api.catch_pokemon(encounter_id=pokemon.encounter_id,
                                                 pokeball=pokeball,
                                                 normalized_reticle_size=normalized_reticle_size,
-                                                spawn_point_id=pokemon.get("spawn_point_id"),
+                                                spawn_point_id=pokemon.spawn_point_id,
                                                 hit_pokemon=hit_pokemon,
                                                 spin_modifier=spin_modifier,
                                                 normalized_hit_position=normalized_hit_position)

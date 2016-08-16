@@ -5,6 +5,7 @@ import pprint
 
 from modules.item import items
 from modules.pokedex import pokedex
+from modules.pokemon import Pokemon
 
 log = logging.getLogger("pokemon_bot")
 
@@ -52,9 +53,10 @@ class Inventory(object):
                 pokemon_data = data.get("pokemon_data", None)
                 if pokemon_data:
                     if pokemon_data.get('is_egg', False):
+                        log.info(pokemon_data)
                         self.eggs.append(pokemon_data)
                     else:
-                        self.party.append(pokemon_data)
+                        self.party.append(Pokemon(pokemon_data))
                     continue
 
                 incubators = data.get("egg_incubators", None)
@@ -89,7 +91,7 @@ class Inventory(object):
 
         s += "-- Party:\n"
         for pokemon in self.party:
-            s += "\t{0} cp:{1}\n".format(pokedex[pokemon.get("pokemon_id")], pokemon.get("cp"))
+            s += "\t{0} cp:{1}\n".format(pokedex[pokemon.pokemon_id], pokemon.cp)
 
         s += "-- Eggs:\n"
         for egg in self.eggs:
