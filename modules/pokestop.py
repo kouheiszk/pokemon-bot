@@ -11,6 +11,8 @@ class Pokestop(object):
     def __init__(self, s_dict={}):
         self.id = s_dict.get("id", None)
         self.pokestop_id = s_dict.get("id", None)
+        self.latitude = s_dict.get("latitude")
+        self.longitude = s_dict.get("longitude")
         self.cooldown_complete_timestamp_ms = s_dict.get("cooldown_complete_timestamp_ms", 0)
 
         if "active_fort_modifier" in s_dict:

@@ -33,14 +33,14 @@ class Session(object):
         time.sleep(delay)
         return self._state.inventory
 
-    def get_map_objects(self, delay=10):
+    def get_map_objects(self, radius=1000, delay=10):
         log.info("Get Map Objects...")
-        self._api.get_map_objects(self._state)
+        self._api.get_map_objects(self._state, radius=radius)
         time.sleep(delay)
         return self._state.map_objects
 
     def walk_and_catch_and_spin(self, map_objects, catch=True, spin=True):
-        if catch:
+        if catch and (map_objects.catchable_pokemons or map_objects.wild_pokemons):
             log.info("Catch Pokemons...")
             for pokemon in map_objects.catchable_pokemons:
                 self.walk_and_catch(pokemon)
@@ -48,14 +48,10 @@ class Session(object):
             for pokemon in map_objects.wild_pokemons:
                 self.walk_and_catch(pokemon)
 
-            log.info(map_objects.catchable_pokemons)
-
         if spin:
             log.info("Spin Pokestops...")
             for pokestop in map_objects.sort_close_pokestops(self._api.location):
                 self.walk_and_spin(pokestop)
-
-                sys.exit(0)
 
     def clean_pokemon(self, threshold_cp=50, delay=5):
         log.info("Cleaning out Pokemon...")
@@ -150,7 +146,7 @@ class Session(object):
         time.sleep(delay)
 
         # If party full
-        if encounter.status == encounter.POKEMON_INVENTORY_FULL:
+        if encounter.is_enable_catch():
             raise GeneralPokemonBotException("Can't catch! Party is full!")
 
         # Grab needed data from proto
@@ -227,11 +223,12 @@ class Session(object):
             log.info("Spinning the Fort \"{}\":".format(details.name))
             time.sleep(delay)
 
-            self._api.walk_to(pokestop.get("latitude"), pokestop.get("longitude"), step=3.2)
-            time.sleep(delay)
+            self.walk_to(pokestop.latitude, pokestop.longitude, step=3.2)
+            self.spin_pokestop(pokestop)
 
-            log.info(self._api.get_fort_search(pokestop))
-            time.sleep(delay)
+    def spin_pokestop(self, pokestop, delay=2):
+        self._api.get_fort_search(pokestop)
+        time.sleep(delay)
 
     def set_egg(self):
         # If no eggs, nothing we can do
@@ -242,6 +239,11 @@ class Session(object):
         incubator = self._state.inventory.incubators[0]
         return self._api.set_egg(incubator, egg)  # FIXME
 
+    def set_coordinates(self, latitude, longitude):
+        self._api.location.set_position(latitude, longitude)
+        map_objects = self.get_map_objects(radius=1, delay=2)
+        self.walk_and_catch_and_spin(map_objects, spin=False)
+
     # ゆっくり歩く
     def walk_to(self, olatitude, olongitude, epsilon=10, step=7.5, delay=10):
         # TODO 卵をチェックする
@@ -250,7 +252,7 @@ class Session(object):
             raise GeneralPokemonBotException("Walk may never converge")
 
         # Calculate distance to position
-        latitude, longitude, _ = self._state.location.get_position()
+        latitude, longitude, _ = self._api.location.get_position()
         dist = closest = Location.get_distance(latitude, longitude, olatitude, olongitude)
 
         # Run walk
@@ -267,7 +269,7 @@ class Session(object):
             longitude -= d_lon
             steps %= delay
             if steps == 0:
-                self._state.location.set_position(latitude, longitude)
+                self.set_coordinates(latitude, longitude)
             time.sleep(1)
             dist = Location.get_distance(latitude, longitude, olatitude, olongitude)
             steps += 1
@@ -276,4 +278,4 @@ class Session(object):
         steps -= 1
         if steps % delay > 0:
             time.sleep(delay - steps)
-            self._state.location.set_position(latitude, longitude)
+            self.set_coordinates(latitude, longitude)

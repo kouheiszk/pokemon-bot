@@ -7,6 +7,7 @@ import sys
 
 from pgoapi import pgoapi, utilities
 
+from modules.encounter import Encounter
 from modules.exceptions import GeneralPokemonBotException
 from modules.fort import Fort
 from modules.item import items
@@ -111,12 +112,10 @@ class Api(object):
                                             spawn_point_id=pokemon.spawn_point_id,
                                             player_latitude=self.location.latitude,
                                             player_longitude=self.location.altitude)
-
-        log.info("Response dictionary (encounter): \n\r{}"
-                 .format(pprint.PrettyPrinter(indent=4).pformat(response_dict)))
-        sys.exit(1)
-
-        return response_dict
+        encounter = response_dict["responses"]["ENCOUNTER"]
+        log.debug("Response dictionary (encounter): \n\r{}"
+                  .format(pprint.PrettyPrinter(indent=4).pformat(encounter)))
+        return Encounter(encounter)
 
     def use_item_capture(self, item_id, pokemon):
         response_dict = self._api.use_item_capture(item_id=item_id,
@@ -136,24 +135,23 @@ class Api(object):
 
         log.info("Response dictionary (catch_pokemon): \n\r{}"
                  .format(pprint.PrettyPrinter(indent=4).pformat(response_dict)))
-        sys.exit(1)
 
         return response_dict
 
     def get_fort_details(self, fort):
-        response_dict = self._api.fort_details(fort_id=fort.get("id"),
-                                               latitude=fort.get("latitude"),
-                                               longitude=fort.get("longitude"))
+        response_dict = self._api.fort_details(fort_id=fort.id,
+                                               latitude=fort.latitude,
+                                               longitude=fort.longitude)
         fort = Fort()
         fort.parse_response_dic(response_dict)
         return fort
 
     def get_fort_search(self, fort):
-        response_dict = self._api.fort_search(fort_id=fort.get("id"),
+        response_dict = self._api.fort_search(fort_id=fort.id,
                                               player_latitude=self.location.latitude,
                                               player_longitude=self.location.longitude,
-                                              fort_latitude=fort.get("latitude"),
-                                              fort_longitude=fort.get("longitude"))
+                                              fort_latitude=fort.latitude,
+                                              fort_longitude=fort.longitude)
         return response_dict
 
     def set_coordinates(self, latitude, longitude):

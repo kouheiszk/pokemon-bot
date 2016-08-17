@@ -63,7 +63,6 @@ def main():
 
             # 捕まえる
             session.walk_and_catch_and_spin(map_objects)
-            sys.exit(0)
 
             cooldown = 10
 
