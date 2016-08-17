@@ -12,6 +12,7 @@ from modules.exceptions import GeneralPokemonBotException
 from modules.item import items
 from modules.location import Location
 from modules.pokedex import pokedex
+from modules.route import Route
 from modules.state import State
 
 log = logging.getLogger("pokemon_bot")
@@ -39,19 +40,22 @@ class Session(object):
         time.sleep(delay)
         return self._state.map_objects
 
-    def walk_and_catch_and_spin(self, map_objects, catch=True, spin=True):
-        if catch and (map_objects.catchable_pokemons or map_objects.wild_pokemons):
-            log.info("Catch Pokemons...")
+    def walk_and_catch_and_spin(self, map_objects, limit=10):
+        sorted_pokestops = map_objects.sort_close_pokestops(self._api.location)
+        pokestops = sorted_pokestops[:limit]
+        routes = Route.create_routes(pokestops)
+
+        for route in routes:
+            map_objects = self.get_map_objects()
+            log.info(map_objects)
+
             for pokemon in map_objects.catchable_pokemons:
                 self.walk_and_catch(pokemon)
 
             for pokemon in map_objects.wild_pokemons:
                 self.walk_and_catch(pokemon)
 
-        if spin:
-            log.info("Spin Pokestops...")
-            for pokestop in map_objects.sort_close_pokestops(self._api.location):
-                self.walk_and_spin(pokestop)
+            self.walk_and_spin(route)
 
     def clean_pokemon(self, threshold_cp=50, delay=5):
         log.info("Cleaning out Pokemon...")
@@ -217,17 +221,19 @@ class Session(object):
                 return None
 
     # Walk to fort and spin
-    def walk_and_spin(self, pokestop, delay=2):
-        if pokestop:
-            details = self._api.get_fort_details(pokestop)
-            log.info("Spinning the Fort \"{}\":".format(details.name))
-            time.sleep(delay)
+    def walk_and_spin(self, route, delay=2):
+        details = self._api.get_fort_details(route.pokestop)
+        log.info("Spinning the Fort \"{}\":".format(details.name))
+        time.sleep(delay)
 
-            self.walk_to(pokestop.latitude, pokestop.longitude, step=3.2)
-            self.spin_pokestop(pokestop)
+        if route.legs is None:
+            self.walk_to(route.pokestop.latitude, route.pokestop.longitude, step=3.2)
+        else:
+            for step in route.legs["steps"]:
+                self.walk_to(step["end_location"]["lat"], step["end_location"]["lng"], step=3.2)
 
-    def spin_pokestop(self, pokestop, delay=2):
-        self._api.get_fort_search(pokestop)
+        response_dict = self._api.get_fort_search(route.pokestop)
+        log.info(response_dict)
         time.sleep(delay)
 
     def set_egg(self):
@@ -241,8 +247,7 @@ class Session(object):
 
     def set_coordinates(self, latitude, longitude):
         self._api.location.set_position(latitude, longitude)
-        map_objects = self.get_map_objects(radius=1, delay=2)
-        self.walk_and_catch_and_spin(map_objects, spin=False)
+        self.get_map_objects(radius=1, delay=5)
 
     # ゆっくり歩く
     def walk_to(self, olatitude, olongitude, epsilon=10, step=7.5, delay=10):
@@ -264,7 +269,7 @@ class Session(object):
 
         steps = 1
         while dist > epsilon:
-            log.debug("{} m -> {} m away".format(closest - dist, closest))
+            log.info("{} m -> {} m away".format(closest - dist, closest))
             latitude -= d_lat
             longitude -= d_lon
             steps %= delay

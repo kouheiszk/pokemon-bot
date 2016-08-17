@@ -45,11 +45,7 @@ class Config(object):
         if config.auth_service not in ['ptc', 'google']:
             raise GeneralPokemonBotException("Invalid Auth service specified! ('ptc' or 'google')")
 
-        self.config = config
-        self.general_cooldown_time = 10  # 10 sec
-
-    def __getattr__(self, attr):
-        return self.config.__dict__[attr]
+        self.__dict__.update(config.__dict__)
 
 
 config = Config()

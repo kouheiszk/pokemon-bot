@@ -55,7 +55,6 @@ def main():
             log.info(inventory)
 
             map_objects = session.get_map_objects()
-            log.info(map_objects)
 
             # 不要な持ち物を削除
             session.clean_pokemon(threshold_cp=200)

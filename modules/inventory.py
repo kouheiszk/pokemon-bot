@@ -27,7 +27,7 @@ class Inventory(object):
         self.bag = {}
 
     def parse_response_dic(self, response_dict):
-        self._dict = response_dict.get("responses", {}).get("GET_INVENTORY", {}).get("inventory_delta", {})
+        self._dict = response_dict
         if bool(self._dict):
             log.debug("Response dictionary (get_inventory): \n\r{}"
                       .format(pprint.PrettyPrinter(indent=4).pformat(self._dict)))

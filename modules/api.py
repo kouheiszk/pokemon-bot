@@ -3,8 +3,6 @@
 import logging
 import pprint
 
-import sys
-
 from pgoapi import pgoapi, utilities
 
 from modules.encounter import Encounter
@@ -43,37 +41,44 @@ class Api(object):
         req.download_settings()
         return req
 
-    def parse_default_request_response(self, state, response_dict):
-        state.eggs.parse_response_dic(response_dict)
-        state.inventory.parse_response_dic(response_dict)
-        state.badges.parse_response_dic(response_dict)
-        state.settings.parse_response_dic(response_dict)
-
-    def get_profile(self, state):
+    def _get_profile(self, state):
         req = self.get_default_request()
         req.get_player()
         response_dict = req.call()
-        state.player.parse_response_dic(response_dict)
-        self.parse_default_request_response(state, response_dict)
+
+        player_dict = response_dict["responses"]["GET_PLAYER"]["player_data"]
+        state.player.parse_response_dic(player_dict)
+
+        eggs_dict = response_dict["responses"]["GET_HATCHED_EGGS"]
+        state.eggs.parse_response_dic(eggs_dict)
+
+        inventory_dict = response_dict["responses"]["GET_INVENTORY"]["inventory_delta"]
+        state.inventory.parse_response_dic(inventory_dict)
+
+        badges_dict = response_dict["responses"]["CHECK_AWARDED_BADGES"]
+        state.badges.parse_response_dic(badges_dict)
+
+        settings_dict = response_dict["responses"]["DOWNLOAD_SETTINGS"]["settings"]
+        state.settings.parse_response_dic(settings_dict)
 
     def get_player(self, state):
-        self.get_profile(state)
+        self._get_profile(state)
         return state.player
 
     def get_eggs(self, state):
-        self.get_profile()
+        self._get_profile()
         return state.eggs
 
     def get_inventory(self, state):
-        self.get_profile(state)
+        self._get_profile(state)
         return state.inventory
 
     def get_badges(self, state):
-        self.get_profile(state)
+        self._get_profile(state)
         return state.badges
 
     def get_settings(self, state):
-        self.get_profile(state)
+        self._get_profile(state)
         return state.settings
 
     def get_map_objects(self, state, radius=1000):
@@ -132,19 +137,18 @@ class Api(object):
                                                 hit_pokemon=hit_pokemon,
                                                 spin_modifier=spin_modifier,
                                                 normalized_hit_position=normalized_hit_position)
-
         log.info("Response dictionary (catch_pokemon): \n\r{}"
                  .format(pprint.PrettyPrinter(indent=4).pformat(response_dict)))
-
         return response_dict
 
     def get_fort_details(self, fort):
         response_dict = self._api.fort_details(fort_id=fort.id,
                                                latitude=fort.latitude,
                                                longitude=fort.longitude)
-        fort = Fort()
-        fort.parse_response_dic(response_dict)
-        return fort
+        fort_dict = response_dict["responses"]["FORT_DETAILS"]
+        log.debug("Response dictionary (fort_details): \n\r{}"
+                  .format(pprint.PrettyPrinter(indent=4).pformat(fort_dict)))
+        return Fort(fort_dict)
 
     def get_fort_search(self, fort):
         response_dict = self._api.fort_search(fort_id=fort.id,
