@@ -58,7 +58,7 @@ def main():
             log.info(map_objects)
 
             # 不要な持ち物を削除
-            session.clean_pokemon(threshold_cp=500)
+            session.clean_pokemon(threshold_cp=200)
             session.clean_inventory()
 
             # 捕まえる

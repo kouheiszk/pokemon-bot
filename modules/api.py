@@ -102,8 +102,8 @@ class Api(object):
             response_dict = self._api.recycle_inventory_item(item_id=item_id, count=count)
         else:
             response_dict = None
-        log.info("Response dictionary (recycle_inventory_item): \n\r{}"
-                 .format(pprint.PrettyPrinter(indent=4).pformat(response_dict)))
+        log.debug("Response dictionary (recycle_inventory_item): \n\r{}"
+                  .format(pprint.PrettyPrinter(indent=4).pformat(response_dict)))
         return response_dict
 
     def encounter_pokemon(self, pokemon):

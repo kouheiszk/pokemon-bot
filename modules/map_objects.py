@@ -2,11 +2,14 @@
 # -*- coding: utf-8 -*-
 import logging
 import pprint
+import time
 
-from datetime import datetime, timedelta
+from datetime import datetime
 
+from modules.location import Location
 from modules.pokedex import pokedex
 from modules.pokemon import Pokemon
+from modules.pokestop import Pokestop
 
 log = logging.getLogger("pokemon_bot")
 
@@ -18,7 +21,6 @@ class MapObjects(object):
         self.catchable_pokemons = []
         self.pokestops = []
         self.gyms = []
-        self.catched_pokemon_ids = []
 
         if initial_dict is None:
             initial_dict = {}
@@ -44,21 +46,7 @@ class MapObjects(object):
 
                 for f in cell.get("forts", []):
                     if f.get("type") == 1:  # ポケストップ
-                        pokestop = f
-
-                        if "active_fort_modifier" in f:
-                            lure_expiration = datetime.utcfromtimestamp(
-                                f["last_modified_timestamp_ms"] / 1000.0) + timedelta(minutes=30)
-                            active_fort_modifier = f["active_fort_modifier"]
-                        else:
-                            lure_expiration, active_fort_modifier = None, None
-
-                        pokestop["pokestop_id"] = f["id"]
-                        pokestop["lure_expiration"] = lure_expiration
-                        pokestop["active_fort_modifier"] = active_fort_modifier
-                        pokestop["last_modified"] = datetime.utcfromtimestamp(
-                            f["last_modified_timestamp_ms"] / 1000.0)
-
+                        pokestop = Pokestop(f)
                         pokestops.append(pokestop)
 
                     elif f.get("type") is None:  # ジム
@@ -80,8 +68,20 @@ class MapObjects(object):
     def cells(self):
         return self._dict.get("map_cells", [])
 
-    def catched(self, pokemon):
-        self.catched_pokemon_ids.append(pokemon.pokemon_id)
+    def sort_close_pokestops(self, location):
+        ordered_pokestops = []
+
+        for pokestop in [p for p in self.pokestops if p.cooldown_complete_timestamp_ms < time.time()]:
+            distance = Location.get_distance(
+                location.latitude,
+                location.longitude,
+                pokestop.latitude,
+                pokestop.longitude
+            )
+            ordered_pokestops.append({"distance": distance, "pokestop": pokestop})
+
+        ordered_pokestops = sorted(ordered_pokestops, key=lambda p: p["distance"])
+        return [p["pokestop"] for p in ordered_pokestops]
 
     def __getattr__(self, attr):
         return self._dict.get(attr)

@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 import logging
+import random
 
 import time
 
@@ -40,16 +41,18 @@ class Session(object):
 
     def walk_and_catch_and_spin(self, map_objects, catch=True, spin=True):
         if catch:
+            log.info("Catch Pokemons...")
             for pokemon in map_objects.catchable_pokemons:
                 self.walk_and_catch(pokemon)
 
             for pokemon in map_objects.wild_pokemons:
                 self.walk_and_catch(pokemon)
 
-            sys.exit(0)
+            log.info(map_objects.catchable_pokemons)
 
         if spin:
-            for pokestop in map_objects.pokestops:
+            log.info("Spin Pokestops...")
+            for pokestop in map_objects.sort_close_pokestops(self._api.location):
                 self.walk_and_spin(pokestop)
 
                 sys.exit(0)
@@ -64,8 +67,6 @@ class Session(object):
         for pokemon in self._state.inventory.party:
             # 規定のCP以下のポケモンは博士に返す
             if pokemon.cp < threshold_cp:
-                # It makes more sense to evolve some,
-                # than throw away
                 if pokemon.id in evolvable_pokemon_ids:
                     to_evolve_pokemons[pokemon.pokemon_id].append(pokemon)
                     continue
@@ -77,13 +78,13 @@ class Session(object):
 
         # ポケモンを進化させる
         for pokemon_id in evolvable_pokemon_ids:
-            # if we don't have any candies of that type
-            # e.g. not caught that pokemon yet
             if pokemon_id not in self._state.inventory.candies:
+                # キャンディーが無いということはポケモンを捕まえていないということ
                 continue
+
             candies = self._state.inventory.candies[pokemon_id]
             pokemons = to_evolve_pokemons[pokemon_id]
-            # release for optimal candies
+            # キャンディーの分進化させ、進化後のポケモンを博士に送る
             while candies // pokedex.evolves[pokemon_id] < len(pokemons):
                 pokemon = pokemons.pop()
                 log.info("Releasing {}...".format(pokedex[pokemon.pokemon_id]))
@@ -91,7 +92,7 @@ class Session(object):
                 time.sleep(delay)
                 candies += 1
 
-            # evolve remainder
+            # アメが足りなく進化できなかったポケモンを博士に送る
             for pokemon in pokemons:
                 log.info("Evolving {}...".format(pokedex[pokemon.pokemon_id]))
                 log.info(self._api.evolve_pokemon(pokemon))
@@ -124,7 +125,7 @@ class Session(object):
 
     def walk_and_catch(self, pokemon, delay=2):
         # 歩き出す前にポケモンを捕まえられるかチェック
-        if not self._state.catch.is_catched_pokemon(pokemon):
+        if not self._state.catch.is_catchable_pokemon(pokemon):
             return None
 
         if pokemon:
@@ -139,10 +140,10 @@ class Session(object):
 
     def encounter_and_catch(self, pokemon, inventory, threshold_p=0.5, limit=5, delay=2):
         # ポケモンを捕まえられるかチェック
-        if not self._state.catch.is_catched_pokemon(pokemon):
+        if not self._state.catch.is_catchable_pokemon(pokemon):
             return None
 
-        self._state.catch.catches.append(pokemon)
+        self._state.catch.start_catching(pokemon)
 
         # Start encounter
         encounter = self._api.encounter_pokemon(pokemon)

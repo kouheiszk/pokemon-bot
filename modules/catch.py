@@ -18,6 +18,6 @@ class Catch(object):
     def __init__(self):
         self.catches = []
 
-    def is_catched_pokemon(self, pokemon):
+    def is_catchable_pokemon(self, pokemon):
         pokemon_encounter_ids = [p.encounter_id for p in self.catches]
-        return bool(pokemon.encounter_id in pokemon_encounter_ids)
+        return bool(pokemon.encounter_id not in pokemon_encounter_ids)
