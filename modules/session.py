@@ -150,7 +150,7 @@ class Session(object):
         time.sleep(delay)
 
         # If party full
-        if encounter.is_enable_catch():
+        if not encounter.status == 7:  # FIXME Enum使う
             raise GeneralPokemonBotException("Can't catch! Party is full!")
 
         # Grab needed data from proto

@@ -88,7 +88,8 @@ class Api(object):
                                                   longitude=utilities.f2i(self.location.longitude),
                                                   since_timestamp_ms=timestamps,
                                                   cell_id=cell_ids)
-        state.map_objects.parse_response_dic(response_dict)
+        map_objects_dict = response_dict["responses"]["GET_MAP_OBJECTS"]
+        state.map_objects.parse_response_dic(map_objects_dict)
         return state.map_objects
 
     def release_pokemon(self, pokemon):
@@ -118,8 +119,8 @@ class Api(object):
                                             player_latitude=self.location.latitude,
                                             player_longitude=self.location.altitude)
         encounter = response_dict["responses"]["ENCOUNTER"]
-        log.debug("Response dictionary (encounter): \n\r{}"
-                  .format(pprint.PrettyPrinter(indent=4).pformat(encounter)))
+        log.info("Response dictionary (encounter): \n\r{}"
+                 .format(pprint.PrettyPrinter(indent=4).pformat(encounter)))
         return Encounter(encounter)
 
     def use_item_capture(self, item_id, pokemon):

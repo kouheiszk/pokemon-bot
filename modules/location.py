@@ -27,8 +27,8 @@ class Location(object):
         self.set_position(*position)
 
     def set_position(self, latitude, longitude, altitude=0):
-        self.latitude = latitude + random.uniform(0.00001, 0.00005)
-        self.longitude = longitude + random.uniform(0.00001, 0.00005)
+        self.latitude = latitude + random.uniform(-0.0000005, 0.0000005)
+        self.longitude = longitude + random.uniform(-0.0000005, 0.0000005)
         self.altitude = altitude
 
         log.info('Coordinates: {} {} {}'.format(self.latitude, self.longitude, self.altitude))

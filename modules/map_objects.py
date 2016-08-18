@@ -32,7 +32,7 @@ class MapObjects(object):
         pokestops = []
         gyms = []
 
-        self._dict = response_dict.get("responses", {}).get("GET_MAP_OBJECTS", {})
+        self._dict = response_dict
         if bool(self._dict):
             log.debug("Response dictionary (get_map_objects): \n\r{}"
                       .format(pprint.PrettyPrinter(indent=4).pformat(self._dict)))

@@ -15,6 +15,9 @@ class Route(object):
 
     @classmethod
     def create_routes(cls, pokestops):
+        if len(pokestops) < 2:
+            return [cls(p) for p in pokestops]
+
         routes_url = cls._create_routes_request_url(pokestops)
         routes_data = cls._get_routes_data(routes_url)
         waypoint_count = len(routes_data["waypoint_order"])
