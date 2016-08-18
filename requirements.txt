@@ -1,1 +1,1 @@
-git+https://github.com/keyphact/pgoapi.git@60096ccfea0a97e5358be1d32283ebbfb853b00a#egg=pgoapi
+git+https://github.com/PokemonGoMap/pgoapi.git#egg=pgoapi
