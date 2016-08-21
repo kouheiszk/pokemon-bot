@@ -11,3 +11,6 @@ class HatchedEggs(object):
 
     def parse_response_dic(self, d):
         self.__dict__.update(d)
+        log.info("#####################################")
+        log.info(d)
+        log.info("#####################################")

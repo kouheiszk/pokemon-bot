@@ -10,5 +10,9 @@ class Egg(object):
         self.__dict__.update(d)
 
     @property
-    def incubator_id(self):
+    def egg_incubator_id(self):
         return self.__dict__.get("egg_incubator_id", None)
+
+    @property
+    def egg_km_walked_start(self):
+        return self.__dict__.get("egg_km_walked_start", 0)

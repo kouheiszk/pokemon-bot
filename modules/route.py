@@ -5,8 +5,6 @@ import logging
 
 import urllib
 
-from IPython import embed
-
 log = logging.getLogger("pokemon_bot")
 
 

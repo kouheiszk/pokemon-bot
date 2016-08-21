@@ -28,6 +28,11 @@ class Inventory(object):
         self.eggs = []
         self.bag = {}
 
+    @property
+    def unused_incubators(self):
+        filtered_incubators = filter(lambda i: i.pokemon_id == 0, self.incubators)
+        return [i for i in filtered_incubators]
+
     def parse_response_dic(self, response_dict):
         self._dict = response_dict
         if bool(self._dict):
@@ -97,8 +102,8 @@ class Inventory(object):
 
         s += "-- Eggs:\n"
         for egg in self.eggs:
-            if egg.incubator_id:
-                s += "\t{0}km in:{1}\n".format(egg.egg_km_walked_target, egg.incubator_id)
+            if egg.egg_incubator_id:
+                s += "\t{0}km in:{1}\n".format(egg.egg_km_walked_target - egg.egg_km_walked_start, egg.egg_incubator_id)
             else:
                 s += "\t{0}km\n".format(egg.egg_km_walked_target)
 

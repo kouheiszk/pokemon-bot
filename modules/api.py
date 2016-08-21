@@ -117,9 +117,10 @@ class Api(object):
         req = self._create_request(defaults=False, delay=delay)
         req.release_pokemon(pokemon_id=pokemon.id)
         response_dict = req.call()
+        release_pokemon_dict = response_dict["responses"]["RELEASE_POKEMON"]
         log.info("Response dictionary (release_pokemon): \n\r{}"
-                 .format(pprint.PrettyPrinter(indent=4).pformat(response_dict)))
-        return response_dict
+                 .format(pprint.PrettyPrinter(indent=4).pformat(release_pokemon_dict)))
+        return release_pokemon_dict
 
     def evolve_pokemon(self, pokemon, delay=10):
         log.info("Call EVOLVE_POKEMON...")
@@ -163,9 +164,10 @@ class Api(object):
                              encounter_id=pokemon.encounter_id,
                              spawn_point_id=pokemon.spawn_point_id)
         response_dict = req.call()
+        use_item_capture_dict = response_dict["responses"]["USE_ITEM_CAPTURE"]
         log.info("Response dictionary (use_item_capture): \n\r{}"
-                 .format(pprint.PrettyPrinter(indent=4).pformat(response_dict)))
-        return response_dict
+                 .format(pprint.PrettyPrinter(indent=4).pformat(use_item_capture_dict)))
+        return use_item_capture_dict
 
     def catch_pokemon(self, pokemon, pokeball=items.POKE_BALL,
                       normalized_reticle_size=1.950,
@@ -188,7 +190,7 @@ class Api(object):
                  .format(pprint.PrettyPrinter(indent=4).pformat(catch_pokemon_dict)))
         return catch_pokemon_dict
 
-    def get_fort_details(self, fort, delay=2):
+    def get_fort_details(self, fort, delay=5):
         log.info("Call FORT_DETAILS...")
         req = self._create_request(delay=delay)
         req.fort_details(fort_id=fort.id,
@@ -196,11 +198,11 @@ class Api(object):
                          longitude=fort.longitude)
         response_dict = req.call()
         fort_dict = response_dict["responses"]["FORT_DETAILS"]
-        log.debug("Response dictionary (fort_details): \n\r{}"
-                  .format(pprint.PrettyPrinter(indent=4).pformat(fort_dict)))
+        log.info("Response dictionary (fort_details): \n\r{}"
+                 .format(pprint.PrettyPrinter(indent=4).pformat(fort_dict)))
         return Fort(fort_dict)
 
-    def get_fort_search(self, fort, delay=2):
+    def get_fort_search(self, fort, delay=5):
         log.info("Call FORT_SEARCH...")
         req = self._create_request(delay=delay)
         req.fort_search(fort_id=fort.id,
@@ -210,7 +212,19 @@ class Api(object):
                         fort_longitude=fort.longitude)
         response_dict = req.call()
         fort_search_dict = response_dict["responses"]["FORT_SEARCH"]
+        log.info("Response dictionary (fort_search): \n\r{}"
+                 .format(pprint.PrettyPrinter(indent=4).pformat(fort_search_dict)))
         return fort_search_dict
+
+    def use_item_egg_incubator(self, incubator, egg, delay=10):
+        log.info("Call USE_ITEM_EGG_INCUBAROR...")
+        req = self._create_request(delay=delay)
+        req.use_item_egg_incubator(item_id=incubator.id,
+                                   pokemon_id=egg.id)
+        response_dict = req.call()
+        log.info("Response dictionary (use_item_egg_incubator): \n\r{}"
+                 .format(pprint.PrettyPrinter(indent=4).pformat(response_dict)))
+        return response_dict
 
     def set_coordinates(self, position):
         self._api.set_position(*position)

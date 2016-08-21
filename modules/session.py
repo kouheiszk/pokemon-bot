@@ -5,8 +5,6 @@ import random
 
 import time
 
-from IPython import embed
-
 from modules.api import Api
 from modules.exceptions import GeneralPokemonBotException
 from modules.item import items
@@ -212,14 +210,19 @@ class Session(object):
         fort_search_result = self._api.get_fort_search(pokestop, delay=delay)
         log.info("Fort Search Result: {}".format(fort_search_result))
 
-    def set_egg(self):
-        # If no eggs, nothing we can do
-        if len(self._state.inventory.eggs) == 0:
-            return None
+    def set_eggs(self):
+        incubators = self._state.inventory.unused_incubators
+        eggs = sorted(
+            filter(lambda e: not e.egg_incubator_id, self._state.inventory.eggs),
+            key=lambda e: e.egg_km_walked_target - e.egg_km_walked_start,
+            reverse=True)
 
-        egg = self._state.inventory.eggs[0]
-        incubator = self._state.inventory.incubators[0]
-        return self._api.set_egg(incubator, egg)  # FIXME
+        # 空の孵化器に距離の長い卵から入れる
+        for i in range(min(len(incubators), len(eggs))):
+            incubator = incubators[i]
+            egg = eggs[i]
+            logging.info("Adding egg '%s' to '%s'.", egg.id, incubator.id)
+            self._api.use_item_egg_incubator(incubator, egg)
 
     def set_coordinates(self, latitude, longitude, catch_on_way=True):
         self.location.set_position(latitude, longitude)
@@ -264,18 +267,19 @@ class Session(object):
         d_lat = (latitude - olatitude) / divisions
         d_lon = (longitude - olongitude) / divisions
 
-        log.info("Walking {0} meters. This will take ~{1} seconds...".format(dist, dist / step))
+        log.info("目的地までの距離{0:.2f}m. 徒歩{1:.1f}秒...".format(dist, dist / step))
 
         steps = 1
         while dist > epsilon:
-            log.info("{} m -> {} m away".format(closest - dist, closest))
+            log.info("歩いた距離 {0:.2f}m / {1:.2f}m".format(closest - dist, closest))
             latitude -= d_lat
             longitude -= d_lon
             steps %= delay
             if steps == 0:
                 self.set_coordinates(latitude, longitude, catch_on_way=catch_on_way)
                 if catch_on_way:
-                    self.walk_to(self, olatitude, olongitude, epsilon=epsilon, step=step)
+                    self.walk_to(olatitude, olongitude, epsilon=epsilon, step=step)
+                    break
             else:
                 time.sleep(1)
             dist = Location.get_distance(latitude, longitude, olatitude, olongitude)

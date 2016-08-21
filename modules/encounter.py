@@ -14,3 +14,6 @@ class Encounter(object):
             return True
         else:
             return False
+
+    def capture_probability(self):
+        return self.__dict__.get("capture_probability", {})

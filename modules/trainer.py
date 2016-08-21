@@ -36,8 +36,13 @@ class Trainer(object):
     def clean_pokemon(self, threshold_cp=50):
         self.session.clean_pokemon(threshold_cp=threshold_cp)
 
+    # 持ちすぎているアイテムを捨てる
     def clean_inventory(self):
         self.session.clean_inventory()
+
+    # 卵を孵化器に入れる
+    def set_eggs(self):
+        self.session.set_eggs()
 
     def walk_and_catch_and_spin(self, map_objects, limit=10):
         sorted_pokestops = map_objects.sort_close_pokestops()
