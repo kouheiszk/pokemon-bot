@@ -12,6 +12,7 @@ from modules.exceptions import GeneralPokemonBotException
 from modules.item import items
 from modules.location import Location
 from modules.pokedex import pokedex
+from modules.route import Route
 from modules.state import State
 
 log = logging.getLogger("pokemon_bot")
@@ -112,14 +113,16 @@ class Session(object):
             if item_id in bag and bag[item_id] > limited_items[item_id]:
                 self._api.recycle_inventory_item(item_id, count=(bag[item_id] - limited_items[item_id]), delay=delay)
 
-    def walk_and_catch(self, route):
+    def walk_and_catch(self, route, delay=10, catch_on_way=True):
         # 歩き出す前にポケモンを捕まえられるかチェック
         if not self._state.catch.is_catchable_pokemon(route.instance):
             return None
 
         log.info("Catching {}:".format(pokedex[route.instance.pokemon_id]))
-        self.walk_on(route, step=3.2)
+        self.walk_on(route, step=3.2, catch_on_way=catch_on_way)
         self.encounter_and_catch(route.instance)
+        # ポケモンを捕まえた後はしばらく休む
+        time.sleep(delay)
 
     def encounter_and_catch(self, pokemon, threshold_p=0.5, limit=5, delay=2):
         # ポケモンを捕まえられるかチェック
@@ -154,9 +157,7 @@ class Session(object):
 
             # Check for balls and see if we pass
             # wanted threshold
-            print(balls)
             for i, ball in enumerate(balls):
-                print(bag.get(ball, 0) > 0)
                 if bag.get(ball, 0) > 0:
                     alt_ball = ball
                     if chances[i] > threshold_p:
@@ -201,13 +202,14 @@ class Session(object):
                 return None
 
     # Walk to fort and spin
-    def walk_and_spin(self, route, delay=2):
-        details = self._api.get_fort_details(route.instance, delay=delay)
-        log.info("Spinning the Fort \"{}\":".format(details.name))
-
+    def walk_and_spin(self, route):
         self.walk_on(route, step=3.2)
+        self.spin_pokestop(route.instance)
 
-        fort_search_result = self._api.get_fort_search(route.instance, delay=delay)
+    def spin_pokestop(self, pokestop, delay=2):
+        details = self._api.get_fort_details(pokestop, delay=delay)
+        log.info("Spinning the Fort \"{}\":".format(details.name))
+        fort_search_result = self._api.get_fort_search(pokestop, delay=delay)
         log.info("Fort Search Result: {}".format(fort_search_result))
 
     def set_egg(self):
@@ -219,28 +221,37 @@ class Session(object):
         incubator = self._state.inventory.incubators[0]
         return self._api.set_egg(incubator, egg)  # FIXME
 
-    def set_coordinates(self, latitude, longitude):
+    def set_coordinates(self, latitude, longitude, catch_on_way=True):
         self.location.set_position(latitude, longitude)
         self._api.set_coordinates(self.location.position)
         map_objects = self.get_map_objects(radius=1, delay=1)
         log.info(map_objects)
-        # TODO 範囲内のポケストップは回す
-        # TODO 捕まえられるポケモンは捕まえる
-        
-    def walk_on(self, route, epsilon=10, step=7.5):
+
+        # 移動途中に在るスピン可能範囲内のポケストップは回す
+        for pokestop in map_objects.get_spinable_pokestops(self.location.latitude, self.location.longitude):
+            self.spin_pokestop(pokestop, delay=5)
+
+        if catch_on_way:
+            # 移動途中の捕まえられるポケモンは捕まえる
+            for pokemon in (map_objects.wild_pokemons + map_objects.catchable_pokemons):
+                self.walk_and_catch(Route(pokemon), catch_on_way=False)
+
+    def walk_on(self, route, epsilon=10, step=7.5, catch_on_way=True):
         if route.legs is None:
             self.walk_to(route.instance.latitude,
                          route.instance.longitude,
                          epsilon=epsilon,
-                         step=step)
+                         step=step,
+                         catch_on_way=catch_on_way)
         else:
             for s in route.legs["steps"]:
                 self.walk_to(s["end_location"]["lat"],
                              s["end_location"]["lng"],
                              epsilon=epsilon,
-                             step=step)
+                             step=step,
+                             catch_on_way=catch_on_way)
 
-    def walk_to(self, olatitude, olongitude, epsilon=10, step=7.5, delay=10):
+    def walk_to(self, olatitude, olongitude, epsilon=10, step=7.5, delay=10, catch_on_way=True):
         if step >= epsilon:
             raise GeneralPokemonBotException("Walk may never converge")
 
@@ -262,7 +273,9 @@ class Session(object):
             longitude -= d_lon
             steps %= delay
             if steps == 0:
-                self.set_coordinates(latitude, longitude)
+                self.set_coordinates(latitude, longitude, catch_on_way=catch_on_way)
+                if catch_on_way:
+                    self.walk_to(self, olatitude, olongitude, epsilon=epsilon, step=step)
             else:
                 time.sleep(1)
             dist = Location.get_distance(latitude, longitude, olatitude, olongitude)
@@ -272,4 +285,4 @@ class Session(object):
         steps -= 1
         if steps % delay > 0:
             time.sleep(delay - steps)
-            self.set_coordinates(latitude, longitude)
+            self.set_coordinates(latitude, longitude, catch_on_way=False)

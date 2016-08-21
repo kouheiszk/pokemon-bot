@@ -136,11 +136,12 @@ class Api(object):
         if count > 0:
             req.recycle_inventory_item(item_id=item_id, count=count)
             response_dict = req.call()
+            recycle_inventory_item_dict = response_dict["responses"]["RECYCLE_INVENTORY_ITEM"]
         else:
-            response_dict = None
+            recycle_inventory_item_dict = None
         log.info("Response dictionary (recycle_inventory_item): \n\r{}"
-                 .format(pprint.PrettyPrinter(indent=4).pformat(response_dict)))
-        return response_dict
+                 .format(pprint.PrettyPrinter(indent=4).pformat(recycle_inventory_item_dict)))
+        return recycle_inventory_item_dict
 
     def encounter_pokemon(self, pokemon, delay=10):
         log.info("Call ENCOUNTER...")

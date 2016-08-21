@@ -73,14 +73,31 @@ class MapObjects(object):
 
         for pokestop in [p for p in self.pokestops if p.cooldown_complete_timestamp_ms < time.time()]:
             ordered_pokestops.append({
-                        'hilbert': Location.get_lat_long_index(
-                            pokestop.latitude, pokestop.longitude
-                        ),
-                        'pokestop': pokestop
-                    })
+                'hilbert': Location.get_lat_long_index(
+                    pokestop.latitude, pokestop.longitude
+                ),
+                'pokestop': pokestop
+            })
 
         ordered_pokestops = sorted(ordered_pokestops, key=lambda p: p["hilbert"])
         return [p["pokestop"] for p in ordered_pokestops]
+
+    def get_spinable_pokestops(self, latitude, longitude):
+        spinable_pokestops = []
+        for pokestop in [p for p in self.pokestops if p.cooldown_complete_timestamp_ms < time.time()]:
+            distance = Location.get_distance(
+                latitude,
+                longitude,
+                pokestop.latitude,
+                pokestop.longitude
+            )
+            spinable_pokestops.append({
+                'distane': distance,
+                'pokestop': pokestop
+            })
+
+        # 15m以下のポケストップを返す
+        return [p["pokestop"] for p in spinable_pokestops if p["distane"] < 15]
 
     def __getattr__(self, attr):
         return self._dict.get(attr)
