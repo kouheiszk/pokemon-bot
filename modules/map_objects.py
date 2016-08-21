@@ -68,19 +68,18 @@ class MapObjects(object):
     def cells(self):
         return self._dict.get("map_cells", [])
 
-    def sort_close_pokestops(self, location):
+    def sort_close_pokestops(self):
         ordered_pokestops = []
 
         for pokestop in [p for p in self.pokestops if p.cooldown_complete_timestamp_ms < time.time()]:
-            distance = Location.get_distance(
-                location.latitude,
-                location.longitude,
-                pokestop.latitude,
-                pokestop.longitude
-            )
-            ordered_pokestops.append({"distance": distance, "pokestop": pokestop})
+            ordered_pokestops.append({
+                        'hilbert': Location.get_lat_long_index(
+                            pokestop.latitude, pokestop.longitude
+                        ),
+                        'pokestop': pokestop
+                    })
 
-        ordered_pokestops = sorted(ordered_pokestops, key=lambda p: p["distance"])
+        ordered_pokestops = sorted(ordered_pokestops, key=lambda p: p["hilbert"])
         return [p["pokestop"] for p in ordered_pokestops]
 
     def __getattr__(self, attr):

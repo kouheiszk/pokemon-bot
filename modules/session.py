@@ -5,14 +5,13 @@ import random
 
 import time
 
-import sys
+from IPython import embed
 
 from modules.api import Api
 from modules.exceptions import GeneralPokemonBotException
 from modules.item import items
 from modules.location import Location
 from modules.pokedex import pokedex
-from modules.route import Route
 from modules.state import State
 
 log = logging.getLogger("pokemon_bot")
@@ -20,42 +19,35 @@ log = logging.getLogger("pokemon_bot")
 
 class Session(object):
     def __init__(self, location_lookup=None):
-        self._api = Api(location_lookup)
+        self._location = Location(location_lookup)
+        self._api = Api(self.location)
         self._state = State()
 
-    def authenticate(self, auth_service, username, password, delay=5):
+    def __getattr__(self, item):
+        return getattr(self._state, item)
+
+    @property
+    def location(self):
+        return self._location
+
+    def authenticate(self, auth_service, username, password):
         log.info("Authenticate with {}...".format(auth_service))
         self._api.authenticate(auth_service, username, password)
-        time.sleep(delay)
+        log.info("Authenticate success!!")
+
+    def get_profile(self, delay=3):
+        self._api.get_player(self._state, delay=delay)
+        return self._state.player
 
     def get_inventory(self, delay=10):
-        log.info("Get Inventory...")
-        self._api.get_inventory(self._state)
-        time.sleep(delay)
+        self._api.get_inventory(self._state, delay=delay)
         return self._state.inventory
 
-    def get_map_objects(self, radius=1000, delay=10):
+    def get_map_objects(self, radius=10, both_direction=True, delay=10):
         log.info("Get Map Objects...")
-        self._api.get_map_objects(self._state, radius=radius)
-        time.sleep(delay)
+        cell_ids = self.location.get_cell_ids(radius=radius, both_direction=both_direction)
+        self._api.get_map_objects(self._state, cell_ids=cell_ids, delay=delay)
         return self._state.map_objects
-
-    def walk_and_catch_and_spin(self, map_objects, limit=10):
-        sorted_pokestops = map_objects.sort_close_pokestops(self._api.location)
-        pokestops = sorted_pokestops[:limit]
-        routes = Route.create_routes(pokestops)
-
-        for route in routes:
-            map_objects = self.get_map_objects()
-            log.info(map_objects)
-
-            for pokemon in map_objects.catchable_pokemons:
-                self.walk_and_catch(pokemon)
-
-            for pokemon in map_objects.wild_pokemons:
-                self.walk_and_catch(pokemon)
-
-            self.walk_and_spin(route)
 
     def clean_pokemon(self, threshold_cp=50, delay=5):
         log.info("Cleaning out Pokemon...")
@@ -73,8 +65,7 @@ class Session(object):
 
                 # Get rid of low CP, low evolve value
                 log.info("Releasing {}...".format(pokedex[pokemon.pokemon_id]))
-                self._api.release_pokemon(pokemon)
-                time.sleep(delay)
+                self._api.release_pokemon(pokemon, delay=delay)
 
         # ポケモンを進化させる
         for pokemon_id in evolvable_pokemon_ids:
@@ -88,17 +79,17 @@ class Session(object):
             while candies // pokedex.evolves[pokemon_id] < len(pokemons):
                 pokemon = pokemons.pop()
                 log.info("Releasing {}...".format(pokedex[pokemon.pokemon_id]))
-                self._api.release_pokemon(pokemon)
-                time.sleep(delay)
+                release_result = self._api.release_pokemon(pokemon, delay=delay)
+                log.info("Release Result: {}".format(release_result))
                 candies += 1
 
             # アメが足りなく進化できなかったポケモンを博士に送る
             for pokemon in pokemons:
                 log.info("Evolving {}...".format(pokedex[pokemon.pokemon_id]))
-                log.info(self._api.evolve_pokemon(pokemon))
-                time.sleep(delay)
-                self._api.release_pokemon(pokemon)
-                time.sleep(delay)
+                evolve_result = self._api.evolve_pokemon(pokemon, delay=delay)
+                log.info("Evolve Result: {}".format(evolve_result))
+                release_result = self._api.release_pokemon(pokemon, delay=delay)
+                log.info("Release Result: {}".format(release_result))
 
     def clean_inventory(self, delay=5):
         log.info("Cleaning out Inventory...")
@@ -108,8 +99,7 @@ class Session(object):
         tossable_item_ids = [items.POTION, items.SUPER_POTION, items.REVIVE]
         for item_id in tossable_item_ids:
             if item_id in bag and bag[item_id] > 0:
-                self._api.recycle_inventory_item(item_id, count=bag[item_id])
-                time.sleep(delay)
+                self._api.recycle_inventory_item(item_id, count=bag[item_id], delay=delay)
 
         # Limit a certain type
         limited_items = {
@@ -120,25 +110,18 @@ class Session(object):
         }
         for item_id in limited_items:
             if item_id in bag and bag[item_id] > limited_items[item_id]:
-                self._api.recycle_inventory_item(item_id, count=(bag[item_id] - limited_items[item_id]))
-                time.sleep(delay)
+                self._api.recycle_inventory_item(item_id, count=(bag[item_id] - limited_items[item_id]), delay=delay)
 
-    def walk_and_catch(self, pokemon, delay=2):
+    def walk_and_catch(self, route):
         # 歩き出す前にポケモンを捕まえられるかチェック
-        if not self._state.catch.is_catchable_pokemon(pokemon):
+        if not self._state.catch.is_catchable_pokemon(route.instance):
             return None
 
-        if pokemon:
-            log.info("Catching {}:".format(pokedex[pokemon.pokemon_id]))
-            self.walk_to(pokemon.latitude, pokemon.longitude, step=3.2)
-            time.sleep(delay)
-            result = self.encounter_and_catch(pokemon, self._state.inventory)
-            log.info(result)
-            return result
-        else:
-            return None
+        log.info("Catching {}:".format(pokedex[route.instance.pokemon_id]))
+        self.walk_on(route, step=3.2)
+        self.encounter_and_catch(route.instance)
 
-    def encounter_and_catch(self, pokemon, inventory, threshold_p=0.5, limit=5, delay=2):
+    def encounter_and_catch(self, pokemon, threshold_p=0.5, limit=5, delay=2):
         # ポケモンを捕まえられるかチェック
         if not self._state.catch.is_catchable_pokemon(pokemon):
             return None
@@ -146,18 +129,17 @@ class Session(object):
         self._state.catch.start_catching(pokemon)
 
         # Start encounter
-        encounter = self._api.encounter_pokemon(pokemon)
-        time.sleep(delay)
+        encounter = self._api.encounter_pokemon(pokemon, delay=delay)
 
         # If party full
-        if not encounter.status == 7:  # FIXME Enum使う
+        if encounter.status == 7:  # FIXME Enum使う
             raise GeneralPokemonBotException("Can't catch! Party is full!")
 
         # Grab needed data from proto
-        chances = encounter.capture_probability.capture_probability
-        balls = encounter.capture_probability.pokeball_type
+        chances = encounter.capture_probability["capture_probability"]
+        balls = encounter.capture_probability["pokeball_type"]
         balls = balls or [items.POKE_BALL, items.GREAT_BALL, items.ULTRA_BALL]
-        bag = inventory.bag
+        bag = self._state.inventory.bag
 
         # Have we used a razz berry yet?
         berried = False
@@ -185,10 +167,9 @@ class Session(object):
             # or use a lower class ball
             if best_ball == items.UNKNOWN:
                 if not berried and bag.get(items.RAZZ_BERRY, 0) > 0:
-                    logging.info("Using a RAZZ_BERRY")
-                    self._api.use_item_capture(items.RAZZ_BERRY, pokemon)
+                    log.info("Using a RAZZ_BERRY")
+                    self._api.use_item_capture(items.RAZZ_BERRY, pokemon, delay=delay + random.randint(0, 2))
                     berried = True
-                    time.sleep(delay + random.randint(1, 3))
                     continue
 
                 # if no alt ball, there are no balls
@@ -199,15 +180,14 @@ class Session(object):
 
             # Try to catch it!!
             log.info("Using a %s" % items[best_ball])
-            attempt = self._api.catch_pokemon(pokemon, best_ball)
-            time.sleep(delay)
+            attempt = self._api.catch_pokemon(pokemon, best_ball, delay=delay + random.randint(0, 2))
 
             # Success or run away
-            if attempt.status == 1:
+            if attempt["status"] == 1:
                 return attempt
 
             # CATCH_FLEE is bad news
-            if attempt.status == 3:
+            if attempt["status"] == 3:
                 if count == 0:
                     log.info("Possible soft ban.")
                 else:
@@ -222,19 +202,13 @@ class Session(object):
 
     # Walk to fort and spin
     def walk_and_spin(self, route, delay=2):
-        details = self._api.get_fort_details(route.pokestop)
+        details = self._api.get_fort_details(route.instance, delay=delay)
         log.info("Spinning the Fort \"{}\":".format(details.name))
-        time.sleep(delay)
 
-        if route.legs is None:
-            self.walk_to(route.pokestop.latitude, route.pokestop.longitude, step=3.2)
-        else:
-            for step in route.legs["steps"]:
-                self.walk_to(step["end_location"]["lat"], step["end_location"]["lng"], step=3.2)
+        self.walk_on(route, step=3.2)
 
-        response_dict = self._api.get_fort_search(route.pokestop)
-        log.info(response_dict)
-        time.sleep(delay)
+        fort_search_result = self._api.get_fort_search(route.instance, delay=delay)
+        log.info("Fort Search Result: {}".format(fort_search_result))
 
     def set_egg(self):
         # If no eggs, nothing we can do
@@ -246,18 +220,32 @@ class Session(object):
         return self._api.set_egg(incubator, egg)  # FIXME
 
     def set_coordinates(self, latitude, longitude):
-        self._api.location.set_position(latitude, longitude)
-        self.get_map_objects(radius=1, delay=5)
+        self.location.set_position(latitude, longitude)
+        self._api.set_coordinates(self.location.position)
+        map_objects = self.get_map_objects(radius=1, delay=1)
+        log.info(map_objects)
+        # TODO 範囲内のポケストップは回す
+        # TODO 捕まえられるポケモンは捕まえる
+        
+    def walk_on(self, route, epsilon=10, step=7.5):
+        if route.legs is None:
+            self.walk_to(route.instance.latitude,
+                         route.instance.longitude,
+                         epsilon=epsilon,
+                         step=step)
+        else:
+            for s in route.legs["steps"]:
+                self.walk_to(s["end_location"]["lat"],
+                             s["end_location"]["lng"],
+                             epsilon=epsilon,
+                             step=step)
 
-    # ゆっくり歩く
     def walk_to(self, olatitude, olongitude, epsilon=10, step=7.5, delay=10):
-        # TODO 卵をチェックする
-
         if step >= epsilon:
             raise GeneralPokemonBotException("Walk may never converge")
 
         # Calculate distance to position
-        latitude, longitude, _ = self._api.location.get_position()
+        latitude, longitude, _ = self.location.get_position()
         dist = closest = Location.get_distance(latitude, longitude, olatitude, olongitude)
 
         # Run walk
@@ -275,7 +263,8 @@ class Session(object):
             steps %= delay
             if steps == 0:
                 self.set_coordinates(latitude, longitude)
-            time.sleep(1)
+            else:
+                time.sleep(1)
             dist = Location.get_distance(latitude, longitude, olatitude, olongitude)
             steps += 1
 

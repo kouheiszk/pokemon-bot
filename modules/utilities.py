@@ -6,6 +6,9 @@ import platform
 
 import sys
 
+import time
+from datetime import datetime
+
 log = logging.getLogger("pokemon_bot")
 
 
@@ -55,3 +58,9 @@ def get_encryption_lib_path():
         raise Exception(err)
 
     return lib_path
+
+
+def time2str(second, millisecond=True):
+    if millisecond:
+        second /= 1000
+    return datetime(*time.localtime(second)[:5]).strftime("%Y/%m/%d %H:%M:%S")

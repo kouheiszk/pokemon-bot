@@ -12,6 +12,7 @@ from modules.config import config
 
 from modules.exceptions import GeneralPokemonBotException
 from modules.session import Session
+from modules.trainer import Trainer
 
 log = logging.getLogger("pokemon_bot")
 
@@ -33,8 +34,8 @@ def main():
 
     # 各ライブラリのログレベルを調整
     logging.getLogger("requests").setLevel(logging.WARNING)
-    logging.getLogger("pgoapi").setLevel(logging.INFO)
-    logging.getLogger("rpc_api").setLevel(logging.INFO)
+    logging.getLogger("pgoapi").setLevel(logging.WARNING)
+    logging.getLogger("rpc_api").setLevel(logging.WARNING)
     logging.getLogger("pokemon_bot").setLevel(logging.INFO)
 
     # コンフィグ情報を元に各ライブラリのログレベルを調整
@@ -46,23 +47,25 @@ def main():
 
     session = Session(config.location)
     session.authenticate(config.auth_service, config.username, config.password)
+    if not session:
+        raise GeneralPokemonBotException("Session not created successfully")
+
+    trainer = Trainer(session)
+    trainer.get_profile()
+    trainer.check_inventory()
+
     cooldown = 10  # sec
 
     # Run the bot
     while True:
+        map_objects = session.get_map_objects(both_direction=False)
+        trainer.clean_pokemon(threshold_cp=200)
+        trainer.clean_inventory()
+
+        # FIXME たまごいれる
+
         try:
-            inventory = session.get_inventory()
-            log.info(inventory)
-
-            map_objects = session.get_map_objects()
-
-            # 不要な持ち物を削除
-            session.clean_pokemon(threshold_cp=200)
-            session.clean_inventory()
-
-            # 捕まえる
-            session.walk_and_catch_and_spin(map_objects)
-
+            trainer.walk_and_catch_and_spin(map_objects)
             cooldown = 10
 
         # Catch problems and reauthenticate

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from modules.badges import Badges
 from modules.catch import Catch
-from modules.eggs import Eggs
+from modules.hatched_eggs import HatchedEggs
 from modules.inventory import Inventory
 from modules.map_objects import MapObjects
 from modules.player import Player
@@ -12,7 +12,7 @@ from modules.settings import Settings
 class State(object):
     def __init__(self):
         self.player = Player()
-        self.eggs = Eggs()
+        self.hatched_eggs = HatchedEggs()
         self.inventory = Inventory()
         self.badges = Badges()
         self.settings = Settings()

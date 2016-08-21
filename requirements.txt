@@ -1,1 +1,3 @@
 git+https://github.com/PokemonGoMap/pgoapi.git#egg=pgoapi
+s2sphere==0.2.4
+ipython==5.1.0

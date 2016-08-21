@@ -3,6 +3,8 @@
 import logging
 import pprint
 
+from modules.egg import Egg
+from modules.incubator import Incubator
 from modules.item import items
 from modules.pokedex import pokedex
 from modules.pokemon import Pokemon
@@ -53,15 +55,15 @@ class Inventory(object):
                 pokemon_data = data.get("pokemon_data", None)
                 if pokemon_data:
                     if pokemon_data.get('is_egg', False):
-                        log.info(pokemon_data)
-                        self.eggs.append(pokemon_data)
+                        self.eggs.append(Egg(pokemon_data))
                     else:
                         self.party.append(Pokemon(pokemon_data))
                     continue
 
                 incubators = data.get("egg_incubators", None)
                 if incubators:
-                    self.incubators = incubators.get("egg_incubator")
+                    for incubator in incubators.get("egg_incubator", []):
+                        self.incubators.append(Incubator(incubator))
                     continue
 
                 bag_item = data.get("item", None)
@@ -95,11 +97,10 @@ class Inventory(object):
 
         s += "-- Eggs:\n"
         for egg in self.eggs:
-            incubator_id = egg.get("egg_incubator_id", None)
-            if incubator_id:
-                s += "\t{0}km in:{1}\n".format(egg.get("egg_km_walked_target"), incubator_id)
+            if egg.incubator_id:
+                s += "\t{0}km in:{1}\n".format(egg.egg_km_walked_target, egg.incubator_id)
             else:
-                s += "\t{0}km\n".format(egg.get("egg_km_walked_target"))
+                s += "\t{0}km\n".format(egg.egg_km_walked_target)
 
         s += "-- Bag:\n"
         for key in self.bag:
@@ -107,10 +108,10 @@ class Inventory(object):
 
         s += "-- Incubators:\n"
         for incubator in self.incubators:
-            remaining = incubator.get("uses_remaining", None)
+            remaining = incubator.uses_remaining
             if remaining:
-                s += "\t{0} remaining:{1}\n".format(incubator.get("id"), remaining)
+                s += "\t{0} remaining:{1}\n".format(incubator.id, remaining)
             else:
-                s += "\t{0} mugen\n".format(incubator.get("id"), remaining)
+                s += "\t{0} mugen\n".format(incubator.id, remaining)
 
         return s
