@@ -39,8 +39,8 @@ class Route(object):
         routes = ""
         for position in positions[1:-1]:
             routes += "{},{}|".format(position.latitude, position.longitude)
-        routes_url = "https://maps.googleapis.com/maps/api/directions/json?origin={}&destination={}&waypoints={}".format(
-            start, end, routes[:-1])
+        api_base = "https://maps.googleapis.com/maps/api/directions/json"
+        routes_url = "{}?mode=walking&origin={}&destination={}&waypoints={}".format(api_base, start, end, routes[:-1])
         return routes_url
 
     @classmethod

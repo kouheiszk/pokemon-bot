@@ -10,5 +10,5 @@ class Settings(object):
     def __init__(self, d={}):
         self.__dict__.update(d)
 
-    def parse_response_dic(self, d):
+    def parse_settings_dict(self, d):
         self.__dict__.update(d)

@@ -37,5 +37,13 @@ class Pokemon(object):
 
         self._dict = p_dict
 
+    @property
+    def max_cp(self):
+        return pokedex.get_max_cp_by_id(self.pokemon_id)
+
+    @property
+    def name(self):
+        return pokedex[self.pokemon_id]
+
     def __getattr__(self, attr):
         return self._dict.get(attr)

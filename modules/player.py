@@ -18,7 +18,7 @@ class Player(object):
         self.__dict__.update(d)
 
     def __str__(self):
-        s = "\n# プレイヤー:\n"
+        s = "\n# プレイヤー\n"
 
         s += "## ユーザ名: {}\n".format(self.username)
         s += "## チーム: {}\n".format(Team(self.team).to_jp)

@@ -23,18 +23,16 @@ class Trainer(object):
 
     # プロフィール取得
     def get_profile(self):
-        logging.info("Printing Profile:")
         profile = self.session.get_profile()
         log.info(profile)
 
     # アイテムポーチの中をチェック
     def check_inventory(self):
-        log.info("Checking Inventory:")
         log.info(self.session.inventory)
 
     # cp以下のポケモンを博士に送る
-    def clean_pokemon(self, threshold_cp=50):
-        self.session.clean_pokemon(threshold_cp=threshold_cp)
+    def clean_pokemon(self):
+        self.session.clean_pokemon()
 
     # 持ちすぎているアイテムを捨てる
     def clean_inventory(self):

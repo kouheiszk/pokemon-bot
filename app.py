@@ -45,8 +45,7 @@ def main():
         logging.getLogger("rpc_api").setLevel(logging.DEBUG)
         logging.getLogger("pokemon_bot").setLevel(logging.DEBUG)
 
-    session = Session(config.location)
-    session.authenticate(config.auth_service, config.username, config.password)
+    session = Session(config.auth_service, config.username, config.password, config.location)
     if not session:
         raise GeneralPokemonBotException("Session not created successfully")
 
@@ -59,7 +58,7 @@ def main():
     # Run the bot
     while True:
         map_objects = session.get_map_objects(both_direction=False)
-        trainer.clean_pokemon(threshold_cp=200)
+        trainer.clean_pokemon()
         trainer.clean_inventory()
 
         try:

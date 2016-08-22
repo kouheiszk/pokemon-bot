@@ -9,7 +9,7 @@ class HatchedEggs(object):
     def __init__(self, d={}):
         self.__dict__.update(d)
 
-    def parse_response_dic(self, d):
+    def parse_eggs_dict(self, d):
         self.__dict__.update(d)
         log.info("#####################################")
         log.info(d)
