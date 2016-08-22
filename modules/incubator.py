@@ -12,3 +12,7 @@ class Incubator(object):
     @property
     def uses_remaining(self):
         return self.__dict__.get("uses_remaining", None)
+
+    @property
+    def pokemon_id(self):
+        return self.__dict__.get("pokemon_id", None)

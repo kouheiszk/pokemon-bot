@@ -251,6 +251,40 @@ class Pokedex(dict):
             self.MEWTWO: 0, self.MEW: 0
         }
 
+        self.max_cps = {
+            self.MISSINGNO: 0, self.BULBASAUR: 1072, self.IVYSAUR: 1632, self.VENUSAUR: 2580, self.CHARMANDER: 955,
+            self.CHARMELEON: 1557, self.CHARIZARD: 2602, self.SQUIRTLE: 1009, self.WARTORTLE: 1583,
+            self.BLASTOISE: 2542, self.CATERPIE: 444, self.METAPOD: 478, self.BUTTERFREE: 1455, self.WEEDLE: 449,
+            self.KAKUNA: 485, self.BEEDRILL: 1440, self.PIDGEY: 680, self.PIDGEOTTO: 1224, self.PIDGEOT: 2091,
+            self.RATTATA: 582, self.RATICATE: 1444, self.SPEAROW: 687, self.FEAROW: 1746, self.EKANS: 824,
+            self.ARBOK: 1767, self.PIKACHU: 888, self.RAICHU: 2028, self.SANDSHREW: 799, self.SANDSLASH: 1810,
+            self.NIDORAN_FEMALE: 876, self.NIDORINA: 1405, self.NIDOQUEEN: 2485, self.NIDORAN_MALE: 843,
+            self.NIDORINO: 1373, self.NIDOKING: 2475, self.CLEFAIRY: 1201, self.CLEFABLE: 2398, self.VULPIX: 831,
+            self.NINETALES: 2188, self.JIGGLYPUFF: 918, self.WIGGLYTUFF: 2177, self.ZUBAT: 643, self.GOLBAT: 1921,
+            self.ODDISH: 1148, self.GLOOM: 1689, self.VILEPLUME: 2493, self.PARAS: 917, self.PARASECT: 1747,
+            self.VENONAT: 1029, self.VENOMOTH: 1890, self.DIGLETT: 457, self.DUGTRIO: 1169, self.MEOWTH: 756,
+            self.PERSIAN: 1632, self.PSYDUCK: 1110, self.GOLDUCK: 2387, self.MANKEY: 879, self.PRIMEAPE: 1865,
+            self.GROWLITHE: 1335, self.ARCANINE: 2984, self.POLIWAG: 796, self.POLIWHIRL: 1340, self.POLIWRATH: 2505,
+            self.ABRA: 600, self.KADABRA: 1132, self.ALAKAZAM: 1814, self.MACHOP: 1090, self.MACHOKE: 1761,
+            self.MACHAMP: 2594, self.BELLSPROUT: 1117, self.WEEPINBELL: 1724, self.VICTREEBEL: 2531,
+            self.TENTACOOL: 905, self.TENTACRUEL: 2220, self.GEODUDE: 849, self.GRAVELER: 1434, self.GOLEM: 2303,
+            self.PONYTA: 1516, self.RAPIDASH: 2199, self.SLOWPOKE: 1219, self.SLOWBRO: 2597, self.MAGNEMITE: 891,
+            self.MAGNETON: 1880, self.FARFETCHD: 1264, self.DODUO: 855, self.DODRIO: 1836, self.SEEL: 1107,
+            self.DEWGONG: 2146, self.GRIMER: 1284, self.MUK: 2603, self.SHELLDER: 823, self.CLOYSTER: 2053,
+            self.GASTLY: 804, self.HAUNTER: 1380, self.GENGAR: 2078, self.ONIX: 857, self.DROWZEE: 1075,
+            self.HYPNO: 2184, self.KRABBY: 792, self.KINGLER: 1646, self.VOLTORB: 840, self.ELECTRODE: 1646,
+            self.EXEGGCUTE: 1100, self.EXEGGUTOR: 2955, self.CUBONE: 1007, self.MAROWAK: 1657, self.HITMONLEE: 1493,
+            self.HITMONCHAN: 1517, self.LICKITUNG: 1627, self.KOFFING: 1152, self.WEEZING: 2250, self.RHYHORN: 1182,
+            self.RHYDON: 2243, self.CHANSEY: 675, self.TANGELA: 1740, self.KANGASKHAN: 2043, self.HORSEA: 795,
+            self.SEADRA: 1713, self.GOLDEEN: 965, self.SEAKING: 2044, self.STARYU: 938, self.STARMIE: 2182,
+            self.MR_MIME: 1494, self.SCYTHER: 2074, self.JYNX: 1717, self.ELECTABUZZ: 2119, self.MAGMAR: 2265,
+            self.PINSIR: 2122, self.TAUROS: 1845, self.MAGIKARP: 263, self.GYARADOS: 2689, self.LAPRAS: 2981,
+            self.DITTO: 920, self.EEVEE: 1077, self.VAPOREON: 2816, self.JOLTEON: 2140, self.FLAREON: 2643,
+            self.PORYGON: 1692, self.OMANYTE: 1120, self.OMASTAR: 2234, self.KABUTO: 1105, self.KABUTOPS: 2130,
+            self.AERODACTYL: 2165, self.SNORLAX: 3113, self.ARTICUNO: 2978, self.ZAPDOS: 3114, self.MOLTRES: 3240,
+            self.DRATINI: 983, self.DRAGONAIR: 1748, self.DRAGONITE: 3500, self.MEWTWO: 4145, self.MEW: 3299
+        }
+
     def get_id_by_name(self, name):
         return self[name]
 
@@ -261,6 +295,9 @@ class Pokedex(dict):
         for rarity in self.rarity:
             if pokemon_id in self.rarity[rarity]:
                 return rarity
+
+    def get_max_cp_by_id(self, pokemon_id):
+        return self.max_cps[pokemon_id]
 
 
 class Rarity(object):

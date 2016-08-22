@@ -31,7 +31,7 @@ class Inventory(object):
 
     @property
     def unused_incubators(self):
-        filtered_incubators = filter(lambda i: i.pokemon_id == 0, self.incubators)
+        filtered_incubators = filter(lambda i: i.pokemon_id is None, self.incubators)
         return [i for i in filtered_incubators]
 
     def parse_response_dic(self, response_dict):

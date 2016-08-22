@@ -44,8 +44,8 @@ class Trainer(object):
     def set_eggs_if_needed(self):
         self.session.set_eggs()
 
-    def get_level_up_reward_if_needed(self):
-        self.session.get_level_up_reward()
+    def get_level_up_rewards_if_needed(self):
+        self.session.get_level_up_rewards()
 
     def walk_and_catch_and_spin(self, map_objects, limit=10):
         sorted_pokestops = map_objects.sort_close_pokestops()
@@ -60,7 +60,7 @@ class Trainer(object):
             self.set_eggs_if_needed()
 
             # レベルアップリワードを受け取る
-            self.get_level_up_reward_if_needed()
+            self.get_level_up_rewards_if_needed()
 
             wild_pokemon_routes = Route.create_routes(map_objects.wild_pokemons)
             for wild_pokemon_route in wild_pokemon_routes:

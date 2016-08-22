@@ -48,7 +48,7 @@ class Session(object):
         self._api.get_map_objects(self._state, cell_ids=cell_ids, delay=delay)
         return self._state.map_objects
 
-    def clean_pokemon(self, threshold_cp=50, delay=5):
+    def clean_pokemon(self, threshold_cp=50, threshold_cp_percent=50, delay=5):
         log.info("Cleaning out Pokemon...")
 
         evolvable_pokemon_ids = [pokedex.PIDGEY, pokedex.RATTATA, pokedex.ZUBAT]
@@ -57,7 +57,8 @@ class Session(object):
         # 進化コストのかからないポケモン以外を博士に返す
         for pokemon in self._state.inventory.party:
             # 規定のCP以下のポケモンは博士に返す
-            if pokemon.cp < threshold_cp:
+            if pokemon.cp < threshold_cp or pokemon.cp < pokedex.get_max_cp_by_id(
+                    pokemon.pokemon_id) * threshold_cp_percent:
                 if pokemon.id in evolvable_pokemon_ids:
                     to_evolve_pokemons[pokemon.pokemon_id].append(pokemon)
                     continue
@@ -294,4 +295,5 @@ class Session(object):
         steps -= 1
         if steps % delay > 0:
             time.sleep(delay - steps)
-            self.set_coordinates(latitude, longitude, catch_on_way=False)
+            if not catch_on_way:
+                self.set_coordinates(latitude, longitude, catch_on_way=False)
