@@ -41,8 +41,11 @@ class Trainer(object):
         self.session.clean_inventory()
 
     # 卵を孵化器に入れる
-    def set_eggs(self):
+    def set_eggs_if_needed(self):
         self.session.set_eggs()
+
+    def get_level_up_reward_if_needed(self):
+        self.session.get_level_up_reward()
 
     def walk_and_catch_and_spin(self, map_objects, limit=10):
         sorted_pokestops = map_objects.sort_close_pokestops()
@@ -52,6 +55,12 @@ class Trainer(object):
         for pokestop_route in pokestop_routes:
             map_objects = self.session.get_map_objects(both_direction=False)
             log.info(map_objects)
+
+            # 歩き始める前にたまごを孵化器に入れる
+            self.set_eggs_if_needed()
+
+            # レベルアップリワードを受け取る
+            self.get_level_up_reward_if_needed()
 
             wild_pokemon_routes = Route.create_routes(map_objects.wild_pokemons)
             for wild_pokemon_route in wild_pokemon_routes:

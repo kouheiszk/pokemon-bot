@@ -8,6 +8,7 @@ from modules.incubator import Incubator
 from modules.item import items
 from modules.pokedex import pokedex
 from modules.pokemon import Pokemon
+from modules.stats import Stats
 
 log = logging.getLogger("pokemon_bot")
 
@@ -23,7 +24,7 @@ class Inventory(object):
         self.incubators = []
         self.pokedex = {}
         self.candies = {}
-        self.stats = {}
+        self.stats = Stats()
         self.party = []
         self.eggs = []
         self.bag = {}
@@ -44,7 +45,8 @@ class Inventory(object):
                 data = item.get("inventory_item_data")
 
                 if data.get("player_stats"):
-                    self.stats = data.get("player_stats")
+                    stats_dict = data.get("player_stats")
+                    self.stats.parse_from_dict(stats_dict)
                     continue
 
                 pokedex_entry = data.get("pokedex_entry", None)
@@ -80,43 +82,35 @@ class Inventory(object):
         return self._dict.get(attr)
 
     def __str__(self):
-        s = "Inventory:\n"
+        s = "\n# ステータス:\n"
 
-        s += "-- Player Stats:\n"
-        for key in self.stats:
-            s += "\t{0}: {1}\n".format(key, self.stats[key])
+        s += "## プレイヤーの状況:\n"
+        s += "-- レベル {}\n".format(self.stats.level)
+        s += "-- 経験値 {}/{}\n".format(self.stats.experience, self.stats.next_level_xp)
+        s += "-- ポケモン捕獲状況 {}/{}\n".format(self.stats.pokemons_captured, self.stats.pokemons_encountered)
 
-        s += "-- Pokedex:\n"
-        for key in self.pokedex:
-            s += "\t{0}: {1}/{2}\n".format(pokedex[key],
-                                           self.pokedex[key].get("times_captured"),
-                                           self.pokedex[key].get("times_encountered"))
-
-        s += "-- Candies:\n"
-        for key in self.candies:
-            s += "\t{0}: {1}\n".format(pokedex[key], self.candies[key])
-
-        s += "-- Party:\n"
+        s += "## パーティー:\n"
         for pokemon in self.party:
-            s += "\t{0} cp:{1}\n".format(pokedex[pokemon.pokemon_id], pokemon.cp)
+            s += "-- {0} cp:{1}\n".format(pokedex[pokemon.pokemon_id], pokemon.cp)
 
-        s += "-- Eggs:\n"
+        s += "## たまご:\n"
         for egg in self.eggs:
             if egg.egg_incubator_id:
-                s += "\t{0}km in:{1}\n".format(egg.egg_km_walked_target - egg.egg_km_walked_start, egg.egg_incubator_id)
+                s += "-- {0}km in:{1}\n".format(egg.egg_km_walked_target - egg.egg_km_walked_start,
+                                                egg.egg_incubator_id)
             else:
-                s += "\t{0}km\n".format(egg.egg_km_walked_target)
+                s += "-- {0}km\n".format(egg.egg_km_walked_target)
 
-        s += "-- Bag:\n"
+        s += "## バッグ:\n"
         for key in self.bag:
-            s += "\t{0}: {1}\n".format(items[key], self.bag[key])
+            s += "-- {0}: {1}\n".format(items[key], self.bag[key])
 
-        s += "-- Incubators:\n"
+        s += "## 孵化器:\n"
         for incubator in self.incubators:
             remaining = incubator.uses_remaining
             if remaining:
-                s += "\t{0} remaining:{1}\n".format(incubator.id, remaining)
+                s += "-- {0} あと{1}回\n".format(incubator.id, remaining)
             else:
-                s += "\t{0} mugen\n".format(incubator.id, remaining)
-
+                s += "-- {0} 無限孵化器\n".format(incubator.id, remaining)
+                
         return s

@@ -224,6 +224,11 @@ class Session(object):
             logging.info("Adding egg '%s' to '%s'.", egg.id, incubator.id)
             self._api.use_item_egg_incubator(incubator, egg)
 
+    def get_level_up_rewards(self):
+        if self._state.inventory.stats.should_get_level_up_rewarded:
+            self._api.level_up_rewards(self._state.inventory.stats.level)
+            self._state.inventory.stats.should_get_level_up_rewarded = False
+
     def set_coordinates(self, latitude, longitude, catch_on_way=True):
         self.location.set_position(latitude, longitude)
         self._api.set_coordinates(self.location.position)

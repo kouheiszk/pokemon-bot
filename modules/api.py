@@ -226,5 +226,15 @@ class Api(object):
                  .format(pprint.PrettyPrinter(indent=4).pformat(response_dict)))
         return response_dict
 
+    def level_up_rewards(self, level, delay=5):
+        log.info("Call ITEM_CAPTURE...")
+        req = self._create_request(defaults=False, delay=delay)
+        req.level_up_rewards(level=level)
+        response_dict = req.call()
+        level_up_rewards_dict = response_dict["responses"]["LEVEL_UP_REWARDS"]
+        log.info("Response dictionary (level_up_rewards): \n\r{}"
+                 .format(pprint.PrettyPrinter(indent=4).pformat(level_up_rewards_dict)))
+        return level_up_rewards_dict
+
     def set_coordinates(self, position):
         self._api.set_position(*position)
