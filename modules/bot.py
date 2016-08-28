@@ -9,7 +9,7 @@ from modules.route import Route
 log = logging.getLogger("pokemon_bot")
 
 
-class Trainer(object):
+class Bot(object):
     def __init__(self, session):
         self._session = session
 
@@ -50,8 +50,9 @@ class Trainer(object):
         pokestops = sorted_pokestops[:limit]
         pokestop_routes = Route.create_routes(pokestops)
 
-        for pokestop_route in pokestop_routes:
+        for num, pokestop_route in enumerate(pokestop_routes):
             map_objects = self.session.get_map_objects(both_direction=False)
+            log.info("\n# ステップ: {}/{}".format(num + 1, len(pokestop_routes)))
             log.info(map_objects)
 
             # 歩き始める前にたまごを孵化器に入れる
@@ -60,13 +61,11 @@ class Trainer(object):
             # レベルアップリワードを受け取る
             self.get_level_up_rewards_if_needed()
 
-            wild_pokemon_routes = Route.create_routes(map_objects.wild_pokemons)
-            for wild_pokemon_route in wild_pokemon_routes:
-                self.session.walk_and_catch(wild_pokemon_route)
-
+            # 捕獲可能なポケモンを捕まえる
             catchable_pokemon_routes = Route.create_routes(map_objects.catchable_pokemons)
             for catchable_pokemon_route in catchable_pokemon_routes:
-                self.session.walk_and_catch(catchable_pokemon_route)
+                self.session.walk_and_catch(catchable_pokemon_route, catch_on_way=False)
 
+            # ポケストップへ行く
             self.session.walk_and_spin(pokestop_route)
             time.sleep(10)

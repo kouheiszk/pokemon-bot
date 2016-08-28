@@ -25,11 +25,11 @@ class Encounter(object):
         self.attempt = PokemonCatchAttempt(catch_pokemon_dict)
 
     def __str__(self):
-        s = "\n# エンカウント:\n"
-        s += "## ポケモン: {}\n".format(Pokedex(self.pokemon.pokemon_id))
+        s = "\n# エンカウント\n"
+        s += "## ポケモン: {}\n".format(self.pokemon.name)
         s += "## 試行回数: {}\n".format(self.attempt_count)
         s += "## ズリのみ: {}\n".format("使用" if self.berried else "未使用")
-        s += "## 捕獲\n"
+        s += "## 捕獲報酬:\n"
         if self.attempt.status.is_success:
             s += "- ほしのすな: +{}\n".format(sum(self.attempt.capture_award.get("stardust", [])))
             s += "- {}のあめ: +{}\n".format(self.pokemon.name, sum(self.attempt.capture_award.get("candy", [])))

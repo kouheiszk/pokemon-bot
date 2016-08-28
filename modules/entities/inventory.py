@@ -3,12 +3,12 @@
 import logging
 import pprint
 
-from modules.egg import Egg
-from modules.incubator import Incubator
+from modules.entities.egg import Egg
+from modules.entities.incubator import Incubator
+from modules.entities.pokemon import Pokemon
+from modules.entities.stats import Stats
 from modules.item import Item
 from modules.pokedex import Pokedex
-from modules.pokemon import Pokemon
-from modules.stats import Stats
 
 log = logging.getLogger("pokemon_bot")
 
@@ -93,19 +93,23 @@ class Inventory(object):
 
         s += "## パーティー:\n"
         for _, pokemon in self.party.items():
-            s += "- {0} cp:{1}\n".format(Pokedex(pokemon.pokemon_id), pokemon.cp)
+            s += "- {} (CP:{}, ATK:{}, DFS:{}, STM:{})\n".format(Pokedex(pokemon.pokemon_id),
+                                                                 pokemon.cp,
+                                                                 pokemon.individual_attack,
+                                                                 pokemon.individual_defense,
+                                                                 pokemon.individual_stamina)
 
         s += "## たまご:\n"
         for _, egg in self.eggs.items():
             if egg.egg_incubator_id:
-                s += "- {0}km in:{1}\n".format(egg.egg_km_walked_target - egg.egg_km_walked_start,
-                                               egg.egg_incubator_id)
+                s += "- {}km in:{}\n".format(egg.egg_km_walked_target - egg.egg_km_walked_start,
+                                             egg.egg_incubator_id)
             else:
-                s += "- {0}km\n".format(egg.egg_km_walked_target)
+                s += "- {}km\n".format(egg.egg_km_walked_target)
 
         s += "## バッグ:\n"
         for key in self.bag:
-            s += "- {0}: {1}\n".format(Item(key), self.bag[key])
+            s += "- {}: {}\n".format(Item(key), self.bag[key])
 
         s += "## ふかそうち:\n"
         for _, incubator in self.incubators.items():

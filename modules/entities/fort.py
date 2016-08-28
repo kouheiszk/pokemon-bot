@@ -21,11 +21,11 @@ class Fort(object):
         s += "## 名前: {}\n".format(self.name)
         if self.fort_search is not None:
             if self.fort_search.result.is_success:
-                s += "## スピンの経験値: {}\n".format(self.fort_search.experience_awarded)
+                s += "## 経験値: +{}XP\n".format(self.fort_search.experience_awarded)
                 s += "## チェイン: {}\n".format(self.fort_search.chain_hack_sequence_number)
                 s += "## スピンで得たアイテム:\n"
                 for item_awarded in self.fort_search.items_awarded:
-                    s += "- {}: {}個\n".format(Item(item_awarded["item_id"]), item_awarded["item_count"])
+                    s += "- {}: +{}\n".format(Item(item_awarded["item_id"]), item_awarded["item_count"])
             else:
                 s += "## スピン: {}\n".format(self.fort_search.result)
         return s

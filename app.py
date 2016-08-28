@@ -12,7 +12,7 @@ from modules.config import config
 
 from modules.exceptions import GeneralPokemonBotException
 from modules.session import Session
-from modules.trainer import Trainer
+from modules.bot import Bot
 
 log = logging.getLogger("pokemon_bot")
 
@@ -49,20 +49,20 @@ def main():
     if not session:
         raise GeneralPokemonBotException("Session not created successfully")
 
-    trainer = Trainer(session)
-    trainer.get_profile()
-    trainer.check_inventory()
+    bot = Bot(session)
+    bot.get_profile()
 
     cooldown = 10  # sec
 
     # Run the bot
     while True:
+        bot.check_inventory()
         map_objects = session.get_map_objects(both_direction=False)
-        trainer.clean_pokemon()
-        trainer.clean_inventory()
+        bot.clean_pokemon()
+        bot.clean_inventory()
 
         try:
-            trainer.walk_and_catch_and_spin(map_objects)
+            bot.walk_and_catch_and_spin(map_objects)
             cooldown = 10
 
         # Catch problems and reauthenticate

@@ -7,6 +7,7 @@ import time
 from pgoapi import pgoapi, utilities
 
 from modules.entities.encounter import Encounter
+from modules.entities.evolve import Evolve
 from modules.entities.fort import Fort
 from modules.entities.level_up_rewards import LevelUpRewards
 from modules.exceptions import GeneralPokemonBotException
@@ -51,12 +52,13 @@ class Api(object):
         return release_pokemon_dict
 
     def evolve_pokemon(self, state, pokemon, delay=10):
-        log.info("Call EVOLVE_POKEMON...")
+        log.debug("Call EVOLVE_POKEMON...")
         response_dict = self._requester.evolve_pokemon(state, delay=delay,
                                                        pokemon_id=pokemon.id)
+        evolve_pokemon_dict = response_dict["responses"]["EVOLVE_POKEMON"]
         log.info("Response dictionary (evolve_pokemon): \n\r{}"
-                 .format(pprint.PrettyPrinter(indent=4).pformat(response_dict)))
-        return response_dict
+                 .format(pprint.PrettyPrinter(indent=4).pformat(evolve_pokemon_dict)))
+        return Evolve(pokemon, evolve_pokemon_dict)
 
     def recycle_inventory_item(self, state, item_id, count=0, delay=10):
         log.debug("Call RECYCLE_INVNETORY_ITEM...")

@@ -36,13 +36,7 @@ class Session(object):
         self._api.get_player(self._state, delay=delay)
         return self._state.player
 
-    def get_inventory(self, delay=10):
-        log.info(">> ステータス取得...")
-        self._api.get_inventory(self._state, delay=delay)
-        return self._state.inventory
-
     def get_map_objects(self, radius=10, both_direction=True, delay=10):
-        log.info(">> マップを取得...")
         cell_ids = self.location.get_cell_ids(radius=radius, both_direction=both_direction)
         self._api.get_map_objects(self._state, cell_ids=cell_ids, delay=delay)
         return self._state.map_objects
@@ -75,18 +69,17 @@ class Session(object):
             # キャンディーの分進化させ、進化後のポケモンを博士に送る
             while candies // Pokedex(pokemon_id).evolve_candies < len(pokemons):
                 pokemon = pokemons.pop()
-                log.info("Releasing {}...".format(pokemon.name))
-                release_result = self._api.release_pokemon(pokemon, delay=delay)
-                log.info("Release Result: {}".format(release_result))
+                log.info("> {}を送る...".format(pokemon.name))
+                self._api.release_pokemon(pokemon, delay=delay)
                 candies += 1
 
             # アメが足りなく進化できなかったポケモンを博士に送る
             for pokemon in pokemons:
-                log.info("Evolving {}...".format(pokemon.name))
-                evolve_result = self._api.evolve_pokemon(pokemon, delay=delay)
-                log.info("Evolve Result: {}".format(evolve_result))
-                release_result = self._api.release_pokemon(pokemon, delay=delay)
-                log.info("Release Result: {}".format(release_result))
+                log.info("> {}を進化...".format(pokemon.name))
+                evolve_result = self._api.evolve_pokemon(self._state, pokemon, delay=delay)
+                log.info(evolve_result)
+                log.info("> {}を送る...".format(pokemon.name))
+                self._api.release_pokemon(pokemon, delay=delay)
 
     def clean_inventory(self, delay=5):
         log.info(">> アイテムポーチの中身を整理...")
@@ -146,6 +139,9 @@ class Session(object):
         balls = encounter.capture_probability.get("pokeball_type", [])
         balls = balls or [Item.POKE_BALL, Item.GREAT_BALL, Item.ULTRA_BALL]
         bag = self._state.inventory.bag
+
+        if not chances:
+            embed()
 
         # Attempt catch
         while True:
@@ -228,13 +224,14 @@ class Session(object):
         self.location.set_position(latitude, longitude)
         self._api.set_coordinates(self.location.position)
         map_objects = self.get_map_objects(radius=1, delay=1)
-        log.info(map_objects)
 
         # 移動途中に在るスピン可能範囲内のポケストップは回す
         for pokestop in map_objects.get_spinable_pokestops(self.location.latitude, self.location.longitude):
             self.spin_pokestop(pokestop, delay=5)
 
-        if catch_on_way:
+        if catch_on_way and (map_objects.wild_pokemons or map_objects.catchable_pokemons):
+            log.info(">> マップを取得...")
+            log.info(map_objects)
             # 移動途中の捕まえられるポケモンは捕まえる
             for pokemon in (map_objects.wild_pokemons + map_objects.catchable_pokemons):
                 self.walk_and_catch(Route(pokemon), catch_on_way=False)
@@ -267,7 +264,8 @@ class Session(object):
         d_lat = (latitude - olatitude) / divisions
         d_lon = (longitude - olongitude) / divisions
 
-        log.info("目的地までの距離{0:.2f}m. 徒歩{1:.1f}秒...".format(dist, dist / step))
+        log.info("{}までの距離{:.2f}m. 徒歩{:.1f}秒. 現在位置: {}..."
+                 .format("ポケストップ" if catch_on_way else "ポケモン", dist, dist / step, self.location))
 
         steps = 1
         while dist > epsilon:
