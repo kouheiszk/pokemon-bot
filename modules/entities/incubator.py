@@ -16,3 +16,9 @@ class Incubator(object):
     @property
     def pokemon_id(self):
         return self.__dict__.get("pokemon_id", None)
+
+    def __str__(self):
+        if self.uses_remaining:
+            return "ふかそうち（あと{}回）".format(self.uses_remaining)
+        else:
+            return "ムゲンふかそうち"

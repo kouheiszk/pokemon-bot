@@ -102,8 +102,8 @@ class Inventory(object):
         s += "## たまご:\n"
         for _, egg in self.eggs.items():
             if egg.egg_incubator_id:
-                s += "- {}km in:{}\n".format(egg.egg_km_walked_target - egg.egg_km_walked_start,
-                                             egg.egg_incubator_id)
+                s += "- {}km ({}の中)\n".format(egg.egg_km_walked_target - egg.egg_km_walked_start,
+                                             self.incubators[egg.egg_incubator_id])
             else:
                 s += "- {}km\n".format(egg.egg_km_walked_target)
 
@@ -113,10 +113,6 @@ class Inventory(object):
 
         s += "## ふかそうち:\n"
         for _, incubator in self.incubators.items():
-            remaining = incubator.uses_remaining
-            if remaining:
-                s += "- ふかそうち（あと{}回）\n".format(remaining)
-            else:
-                s += "- ムゲンふかそうち\n"
+            s += "- {}\n".format(incubator)
 
         return s

@@ -51,6 +51,6 @@ class FortSearchResult(enum.Enum):
     def __str__(self):
         return ["不明",
                 "成功",
-                "範囲外...",
-                "時間をおいて...",
-                "アイテムポーチがいっぱい"][self.value]
+                "もっと近づいてね!",
+                "時間をおいてね!",
+                "アイテムポーチがいっぱいだよ!"][self.value]
