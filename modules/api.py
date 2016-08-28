@@ -2,15 +2,14 @@
 # -*- coding: utf-8 -*-
 import logging
 import pprint
-
 import time
 
-from IPython import embed
 from pgoapi import pgoapi, utilities
 
-from modules.encounter import Encounter
+from modules.entities.encounter import Encounter
+from modules.entities.fort import Fort
+from modules.entities.level_up_rewards import LevelUpRewards
 from modules.exceptions import GeneralPokemonBotException
-from modules.fort import Fort
 from modules.item import items
 from modules.utilities import get_encryption_lib_path
 
@@ -79,13 +78,13 @@ class Api(object):
                                                   spawn_point_id=pokemon.spawn_point_id,
                                                   player_latitude=self._location.latitude,
                                                   player_longitude=self._location.altitude)
-        encounter = response_dict["responses"]["ENCOUNTER"]
+        encounter_dict = response_dict["responses"]["ENCOUNTER"]
         log.debug("Response dictionary (encounter): \n\r{}"
-                  .format(pprint.PrettyPrinter(indent=4).pformat(encounter)))
-        return Encounter(encounter)
+                  .format(pprint.PrettyPrinter(indent=4).pformat(encounter_dict)))
+        return Encounter(pokemon, encounter_dict)
 
     def use_item_capture(self, item_id, pokemon, delay=10):
-        log.info("Call ITEM_CAPTURE...")
+        log.info("Call USE_ITEM_CAPTURE...")
         response_dict = self._requester.use_item_capture(defaults=False, delay=delay,
                                                          item_id=item_id,
                                                          encounter_id=pokemon.encounter_id,
@@ -102,7 +101,7 @@ class Api(object):
                       spin_modifier=0.850,
                       normalized_hit_position=1.0,
                       delay=10):
-        log.info("Call CATCH_POKEMON...")
+        log.debug("Call CATCH_POKEMON...")
         response_dict = self._requester.catch_pokemon(state, delay=delay,
                                                       encounter_id=pokemon.encounter_id,
                                                       pokeball=pokeball,
@@ -112,8 +111,8 @@ class Api(object):
                                                       spin_modifier=spin_modifier,
                                                       normalized_hit_position=normalized_hit_position)
         catch_pokemon_dict = response_dict["responses"]["CATCH_POKEMON"]
-        log.info("Response dictionary (catch_pokemon): \n\r{}"
-                 .format(pprint.PrettyPrinter(indent=4).pformat(catch_pokemon_dict)))
+        log.debug("Response dictionary (catch_pokemon): \n\r{}"
+                  .format(pprint.PrettyPrinter(indent=4).pformat(catch_pokemon_dict)))
         return catch_pokemon_dict
 
     def get_fort_details(self, state, fort, delay=5):
@@ -149,14 +148,17 @@ class Api(object):
                  .format(pprint.PrettyPrinter(indent=4).pformat(response_dict)))
         return response_dict
 
-    def level_up_rewards(self, level, delay=5):
-        log.info("Call ITEM_CAPTURE...")
+    def level_up_rewards(self, state, delay=5):
+        log.debug("Call LEVEL_UP_REWARDS...")
+        level = state.inventory.stats.level
         response_dict = self._requester.level_up_rewards(defaults=False, delay=delay,
                                                          level=level)
         level_up_rewards_dict = response_dict["responses"]["LEVEL_UP_REWARDS"]
-        log.info("Response dictionary (level_up_rewards): \n\r{}"
-                 .format(pprint.PrettyPrinter(indent=4).pformat(level_up_rewards_dict)))
-        return level_up_rewards_dict
+        log.debug("Response dictionary (level_up_rewards): \n\r{}"
+                  .format(pprint.PrettyPrinter(indent=4).pformat(level_up_rewards_dict)))
+        state.inventory.stats.should_get_level_up_rewarded = False
+        level_up_rewards = LevelUpRewards(level, level_up_rewards_dict)
+        return level_up_rewards
 
     def set_coordinates(self, position):
         self._requester.set_position(position)

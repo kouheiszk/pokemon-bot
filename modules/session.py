@@ -5,6 +5,8 @@ import random
 
 import time
 
+from IPython import embed
+
 from modules.api import Api
 from modules.exceptions import GeneralPokemonBotException
 from modules.item import items
@@ -29,11 +31,6 @@ class Session(object):
     def location(self):
         return self._location
 
-    # def authenticate(self, auth_service, username, password):
-    #     log.info(">> {}アカウントで認証...".format(auth_service))
-    #     self._api.authenticate(auth_service, username, password)
-    #     log.info("<< 成功")
-
     def get_profile(self, delay=5):
         log.info(">> プロフィール取得...")
         self._api.get_player(self._state, delay=delay)
@@ -57,7 +54,7 @@ class Session(object):
         to_evolve_pokemons = {pokemon_id: [] for pokemon_id in evolvable_pokemon_ids}
 
         # 進化コストのかからないポケモン以外を博士に返す
-        for pokemon in self._state.inventory.party:
+        for _, pokemon in self._state.inventory.party.items():
             # 規定のCP以下のポケモンは博士に返す
             if pokemon.cp < pokemon.max_cp * threshold_rate / 100:
                 if pokemon.id in evolvable_pokemon_ids:
@@ -124,11 +121,12 @@ class Session(object):
 
         log.info("Catching {}:".format(pokemon.name))
         self.walk_on(route, step=1.6, catch_on_way=catch_on_way)
-        self.encounter_and_catch(pokemon)
+        result = self.encounter_and_catch(pokemon)
+        log.info(result)
         # ポケモンを捕まえた後はしばらく休む
         time.sleep(delay)
 
-    def encounter_and_catch(self, pokemon, threshold_p=0.5, limit=5, delay=2):
+    def encounter_and_catch(self, pokemon, threshold_p=0.5, limit=10, delay=2):
         # ポケモンを捕まえられるかチェック
         if not self._state.catch.is_catchable_pokemon(pokemon):
             return None
@@ -139,7 +137,7 @@ class Session(object):
         encounter = self._api.encounter_pokemon(self._state, pokemon, delay=delay)
 
         # If party full
-        if encounter.status == 7:  # FIXME Enum使う
+        if encounter.status.is_party_full:
             raise GeneralPokemonBotException("Can't catch! Party is full!")
 
         # Grab needed data from proto
@@ -147,12 +145,6 @@ class Session(object):
         balls = encounter.capture_probability["pokeball_type"]
         balls = balls or [items.POKE_BALL, items.GREAT_BALL, items.ULTRA_BALL]
         bag = self._state.inventory.bag
-
-        # Have we used a razz berry yet?
-        berried = False
-
-        # Make sure we aren't oer limit
-        count = 0
 
         # Attempt catch
         while True:
@@ -171,10 +163,10 @@ class Session(object):
             # If we can't determine a ball, try a berry
             # or use a lower class ball
             if best_ball == items.UNKNOWN:
-                if not berried and bag.get(items.RAZZ_BERRY, 0) > 0:
-                    log.info("Using a RAZZ_BERRY")
+                if not encounter.berried and bag.get(items.RAZZ_BERRY, 0) > 0:
+                    log.info("> ラズベリーを使う")
                     self._api.use_item_capture(items.RAZZ_BERRY, pokemon, delay=delay + random.randint(0, 2))
-                    berried = True
+                    encounter.berried = True
                     continue
 
                 # if no alt ball, there are no balls
@@ -183,26 +175,20 @@ class Session(object):
                 else:
                     best_ball = alt_ball
 
-            # Try to catch it!!
-            log.info("Using a %s" % items[best_ball])
-            attempt = self._api.catch_pokemon(self._state, pokemon, best_ball, delay=delay + random.randint(0, 2))
+            # ボールを投げる
+            log.info("> {}を投げた...".format(items[best_ball]))
+            catch_pokemon_dict = self._api.catch_pokemon(self._state, pokemon, best_ball,
+                                                         delay=delay + random.randint(0, 2))
+            encounter.set_catch_pokemon_dict(catch_pokemon_dict)
 
             # Success or run away
-            if attempt["status"] == 1:
-                return attempt
-
-            # CATCH_FLEE is bad news
-            if attempt["status"] == 3:
-                if count == 0:
-                    log.info("Possible soft ban.")
-                else:
-                    log.info("Pokemon fled at {}th attempt".format(count + 1))
-                return attempt
+            if encounter.attempt.status.is_success or encounter.attempt.status.is_flee:
+                return encounter
 
             # Only try up to x attempts
-            count += 1
-            if count >= limit:
-                log.info("Over catch limit")
+            encounter.attempt_count += 1
+            if encounter.attempt_count > limit:
+                log.info("<< 試行上限をオーバー")
                 return None
 
     # Walk to fort and spin
@@ -214,13 +200,13 @@ class Session(object):
         details = self._api.get_fort_details(self._state, pokestop, delay=delay)
         fort_search_dict = self._api.get_fort_search(self._state, pokestop, delay=delay)
         details.set_fort_search_dict(fort_search_dict)
-        log.info(">> ポケストップをスピン:")
+        log.info(">> ポケストップをスピン...")
         log.info("{}".format(details))
 
     def set_eggs(self):
         incubators = self._state.inventory.unused_incubators
         eggs = sorted(
-            filter(lambda e: not e.egg_incubator_id, self._state.inventory.eggs),
+            filter(lambda e: not e.egg_incubator_id, self._state.inventory.eggs.values()),
             key=lambda e: e.egg_km_walked_target - e.egg_km_walked_start,
             reverse=True)
 
@@ -228,13 +214,14 @@ class Session(object):
         for i in range(min(len(incubators), len(eggs))):
             incubator = incubators[i]
             egg = eggs[i]
-            logging.info("Adding egg '%s' to '%s'.", egg.id, incubator.id)
+            log.info("Adding egg '{}' to '{}'.".format(egg.id, incubator.id))
             self._api.use_item_egg_incubator(self._state, incubator, egg)
 
     def get_level_up_rewards(self):
         if self._state.inventory.stats.should_get_level_up_rewarded:
-            self._api.level_up_rewards(self._state.inventory.stats.level)
-            self._state.inventory.stats.should_get_level_up_rewarded = False
+            rewards = self._api.level_up_rewards(self._state)
+            log.info(">> レベルアップ...")
+            log.info("{}".format(rewards))
 
     def set_coordinates(self, latitude, longitude, catch_on_way=True):
         self.location.set_position(latitude, longitude)

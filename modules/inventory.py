@@ -3,6 +3,8 @@
 import logging
 import pprint
 
+from IPython import embed
+
 from modules.egg import Egg
 from modules.incubator import Incubator
 from modules.item import items
@@ -20,17 +22,17 @@ class Inventory(object):
         if d is not None:
             self.parse_inventory_dict(d)
 
-        self.incubators = []
+        self.stats = Stats()
         self.pokedex = {}
         self.candies = {}
-        self.stats = Stats()
-        self.party = []
-        self.eggs = []
+        self.eggs = {}
+        self.party = {}
+        self.incubators = {}
         self.bag = {}
 
     @property
     def unused_incubators(self):
-        filtered_incubators = filter(lambda i: i.pokemon_id is None, self.incubators)
+        filtered_incubators = filter(lambda i: i.pokemon_id is None, self.incubators.values())
         return [i for i in filtered_incubators]
 
     def parse_inventory_dict(self, response_dict):
@@ -45,14 +47,16 @@ class Inventory(object):
 
                 if data.get("player_stats"):
                     stats_dict = data.get("player_stats")
-                    self.stats.parse_from_dict(stats_dict)
+                    self.stats.parse_stats_dict(stats_dict)
                     continue
 
+                self.pokedex = {}
                 pokedex_entry = data.get("pokedex_entry", None)
                 if pokedex_entry:
                     self.pokedex[pokedex_entry.get("pokemon_id")] = pokedex_entry
                     continue
 
+                self.candies = {}
                 candy = data.get("candy", None)
                 if candy:
                     self.candies[candy.get("family_id")] = candy.get("candy")
@@ -61,15 +65,18 @@ class Inventory(object):
                 pokemon_data = data.get("pokemon_data", None)
                 if pokemon_data:
                     if pokemon_data.get('is_egg', False):
-                        self.eggs.append(Egg(pokemon_data))
+                        egg = Egg(pokemon_data)
+                        self.eggs[egg.id] = egg
                     else:
-                        self.party.append(Pokemon(pokemon_data))
+                        pokemon = Pokemon(pokemon_data)
+                        self.party[pokemon.id] = pokemon
                     continue
 
                 incubators = data.get("egg_incubators", None)
                 if incubators:
                     for incubator in incubators.get("egg_incubator", []):
-                        self.incubators.append(Incubator(incubator))
+                        incubator = Incubator(incubator)
+                        self.incubators[incubator.id] = incubator
                     continue
 
                 bag_item = data.get("item", None)
@@ -89,11 +96,11 @@ class Inventory(object):
         s += "- ポケモン捕獲状況 {}/{}\n".format(self.stats.pokemons_captured, self.stats.pokemons_encountered)
 
         s += "## パーティー:\n"
-        for pokemon in self.party:
+        for _, pokemon in self.party.items():
             s += "- {0} cp:{1}\n".format(pokedex[pokemon.pokemon_id], pokemon.cp)
 
         s += "## たまご:\n"
-        for egg in self.eggs:
+        for _, egg in self.eggs.items():
             if egg.egg_incubator_id:
                 s += "- {0}km in:{1}\n".format(egg.egg_km_walked_target - egg.egg_km_walked_start,
                                                egg.egg_incubator_id)
@@ -105,7 +112,7 @@ class Inventory(object):
             s += "- {0}: {1}\n".format(items[key], self.bag[key])
 
         s += "## 孵化器:\n"
-        for incubator in self.incubators:
+        for _, incubator in self.incubators.items():
             remaining = incubator.uses_remaining
             if remaining:
                 s += "- {0} あと{1}回\n".format(incubator.id, remaining)

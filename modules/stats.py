@@ -10,7 +10,7 @@ class Stats(object):
         self.should_get_level_up_rewarded = False
         self._rewarded_level = None
 
-    def parse_from_dict(self, stats_dict):
+    def parse_stats_dict(self, stats_dict):
         self.__dict__.update(stats_dict)
 
         # レベルアップの報酬を受け取る
