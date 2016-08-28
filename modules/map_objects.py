@@ -7,7 +7,6 @@ import time
 from datetime import datetime
 
 from modules.location import Location
-from modules.pokedex import pokedex
 from modules.pokemon import Pokemon
 from modules.pokestop import Pokestop
 
@@ -108,12 +107,12 @@ class MapObjects(object):
         if len(self.wild_pokemons) > 0:
             s += "## 野生のポケモン:\n"
             for pokemon in self.wild_pokemons:
-                s += "- {0}: {1}\n".format(pokedex[pokemon.pokemon_id], pokemon)
+                s += "- {0}: {1}\n".format(pokemon.name, pokemon)
 
         if len(self.catchable_pokemons) > 0:
             s += "## 捕獲可能なポケモン:\n"
             for pokemon in self.catchable_pokemons:
-                s += "- {0}: {1}\n".format(pokedex[pokemon.pokemon_id], pokemon)
+                s += "- {0}: {1}\n".format(pokemon.name, pokemon)
 
         s += "## ポケストップ: {0} stops\n".format(len(self.pokestops))
         s += "## ジム: {0} gyms\n".format(len(self.gyms))

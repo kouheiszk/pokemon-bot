@@ -3,7 +3,7 @@
 import enum
 import logging
 
-from modules.pokedex import pokedex
+from modules.pokedex import Pokedex
 
 log = logging.getLogger("pokemon_bot")
 
@@ -26,14 +26,13 @@ class Encounter(object):
 
     def __str__(self):
         s = "\n# エンカウント:\n"
-        s += "## ポケモン: {}\n".format(pokedex[self.pokemon.pokemon_id])
+        s += "## ポケモン: {}\n".format(Pokedex(self.pokemon.pokemon_id))
         s += "## 試行回数: {}\n".format(self.attempt_count)
-        s += "## ラズベリー: {}\n".format("使用" if self.berried else "未使用")
+        s += "## ズリのみ: {}\n".format("使用" if self.berried else "未使用")
         s += "## 捕獲\n"
         if self.attempt.status.is_success:
-            embed()
             s += "- ほしのすな: +{}\n".format(sum(self.attempt.capture_award.get("stardust", [])))
-            s += "- {}のあめ: +{}\n".format(sum(self.attempt.capture_award.get("candy", [])))
+            s += "- {}のあめ: +{}\n".format(self.pokemon.name, sum(self.attempt.capture_award.get("candy", [])))
             s += "- 経験値: +{}XP\n".format(sum(self.attempt.capture_award.get("xp", [])))
         else:
             s += "- {}\n".format(self.attempt.status)

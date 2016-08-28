@@ -6,7 +6,7 @@ import pprint
 from modules.egg import Egg
 from modules.incubator import Incubator
 from modules.item import Item
-from modules.pokedex import pokedex
+from modules.pokedex import Pokedex
 from modules.pokemon import Pokemon
 from modules.stats import Stats
 
@@ -48,13 +48,11 @@ class Inventory(object):
                     self.stats.parse_stats_dict(stats_dict)
                     continue
 
-                self.pokedex = {}
                 pokedex_entry = data.get("pokedex_entry", None)
                 if pokedex_entry:
                     self.pokedex[pokedex_entry.get("pokemon_id")] = pokedex_entry
                     continue
 
-                self.candies = {}
                 candy = data.get("candy", None)
                 if candy:
                     self.candies[candy.get("family_id")] = candy.get("candy")
@@ -95,7 +93,7 @@ class Inventory(object):
 
         s += "## パーティー:\n"
         for _, pokemon in self.party.items():
-            s += "- {0} cp:{1}\n".format(pokedex[pokemon.pokemon_id], pokemon.cp)
+            s += "- {0} cp:{1}\n".format(Pokedex(pokemon.pokemon_id), pokemon.cp)
 
         s += "## たまご:\n"
         for _, egg in self.eggs.items():

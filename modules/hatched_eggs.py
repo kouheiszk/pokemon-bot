@@ -11,6 +11,7 @@ class HatchedEggs(object):
 
     def parse_eggs_dict(self, d):
         self.__dict__.update(d)
-        log.info("#####################################")
-        log.info(d)
-        log.info("#####################################")
+        if len(d) >= 2:
+            log.info("#####################################")
+            log.info(d)
+            log.info("#####################################")

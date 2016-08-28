@@ -140,13 +140,14 @@ class Api(object):
         return fort_search_dict
 
     def use_item_egg_incubator(self, state, incubator, egg, delay=10):
-        log.info("Call USE_ITEM_EGG_INCUBAROR...")
+        log.debug("Call USE_ITEM_EGG_INCUBAROR...")
         response_dict = self._requester.use_item_egg_incubator(state, delay=delay,
                                                                item_id=incubator.id,
                                                                pokemon_id=egg.id)
-        log.info("Response dictionary (use_item_egg_incubator): \n\r{}"
-                 .format(pprint.PrettyPrinter(indent=4).pformat(response_dict)))
-        return response_dict
+        use_item_egg_incubator_dict = response_dict["responses"]["USE_ITEM_EGG_INCUBATOR"]
+        log.debug("Response dictionary (use_item_egg_incubator): \n\r{}"
+                  .format(pprint.PrettyPrinter(indent=4).pformat(use_item_egg_incubator_dict)))
+        return use_item_egg_incubator_dict
 
     def level_up_rewards(self, state, delay=5):
         log.debug("Call LEVEL_UP_REWARDS...")
@@ -191,7 +192,7 @@ class ApiRequester(object):
         # 前回のリクエスト終了から、次回リクエスト実行までの間隔をあける
         delta = int(self._request_available_time - time.time())
         if delta > 0:
-            log.info("Cooldown... {}sec to do...".format(delta))
+            log.debug("Cooldown... {}sec to do...".format(delta))
             time.sleep(delta)
 
         self._request_available_time = time.time() + delay

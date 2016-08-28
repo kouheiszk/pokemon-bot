@@ -11,7 +11,7 @@ from modules.api import Api
 from modules.exceptions import GeneralPokemonBotException
 from modules.item import Item
 from modules.location import Location
-from modules.pokedex import pokedex
+from modules.pokedex import Pokedex
 from modules.route import Route
 from modules.state import State
 
@@ -50,7 +50,7 @@ class Session(object):
     def clean_pokemon(self, threshold_rate=20, delay=5):
         log.info(">> 博士にポケモンを送る...")
 
-        evolvable_pokemon_ids = [pokedex.PIDGEY, pokedex.RATTATA, pokedex.ZUBAT]
+        evolvable_pokemon_ids = [Pokedex.PIDGEY, Pokedex.RATTATA, Pokedex.ZUBAT]
         to_evolve_pokemons = {pokemon_id: [] for pokemon_id in evolvable_pokemon_ids}
 
         # 進化コストのかからないポケモン以外を博士に返す
@@ -73,7 +73,7 @@ class Session(object):
             candies = self._state.inventory.candies[pokemon_id]
             pokemons = to_evolve_pokemons[pokemon_id]
             # キャンディーの分進化させ、進化後のポケモンを博士に送る
-            while candies // pokedex.evolves[pokemon_id] < len(pokemons):
+            while candies // Pokedex(pokemon_id).evolve_candies < len(pokemons):
                 pokemon = pokemons.pop()
                 log.info("Releasing {}...".format(pokemon.name))
                 release_result = self._api.release_pokemon(pokemon, delay=delay)
@@ -119,7 +119,7 @@ class Session(object):
         if not self._state.catch.is_catchable_pokemon(pokemon):
             return None
 
-        log.info("Catching {}:".format(pokemon.name))
+        log.info(">> {}捕獲開始...".format(pokemon.name))
         self.walk_on(route, step=1.6, catch_on_way=catch_on_way)
         result = self.encounter_and_catch(pokemon)
         log.info(result)
@@ -176,7 +176,7 @@ class Session(object):
                     best_ball = alt_ball
 
             # ボールを投げる
-            log.info("> {}を投げた...".format(items[best_ball]))
+            log.info("> {}を投げた...".format(Item(best_ball)))
             catch_pokemon_dict = self._api.catch_pokemon(self._state, pokemon, best_ball,
                                                          delay=delay + random.randint(0, 2))
             encounter.set_catch_pokemon_dict(catch_pokemon_dict)
@@ -214,7 +214,7 @@ class Session(object):
         for i in range(min(len(incubators), len(eggs))):
             incubator = incubators[i]
             egg = eggs[i]
-            log.info("Adding egg '{}' to '{}'.".format(egg.id, incubator.id))
+            log.info("Adding egg '{}' to '{}'.".format(egg.id, self._state.inventory.incubators[incubator.id]))
             self._api.use_item_egg_incubator(self._state, incubator, egg)
 
     def get_level_up_rewards(self):

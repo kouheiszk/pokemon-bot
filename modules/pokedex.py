@@ -1,10 +1,9 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-import inspect
+import enum
 
 
-class Pokedex(dict):
-    # Enum pokemonIds
+class Pokedex(enum.Enum):
     MISSINGNO = 0
     BULBASAUR = 1
     IVYSAUR = 2
@@ -158,149 +157,439 @@ class Pokedex(dict):
     MEWTWO = 150
     MEW = 151
 
-    rarity = {}
-    evolves = {}
+    @property
+    def max_cp(self):
+        cps = {Pokedex.MISSINGNO: 0, Pokedex.BULBASAUR: 1072, Pokedex.IVYSAUR: 1632, Pokedex.VENUSAUR: 2580,
+               Pokedex.CHARMANDER: 955, Pokedex.CHARMELEON: 1557, Pokedex.CHARIZARD: 2602, Pokedex.SQUIRTLE: 1009,
+               Pokedex.WARTORTLE: 1583, Pokedex.BLASTOISE: 2542, Pokedex.CATERPIE: 444, Pokedex.METAPOD: 478,
+               Pokedex.BUTTERFREE: 1455, Pokedex.WEEDLE: 449, Pokedex.KAKUNA: 485, Pokedex.BEEDRILL: 1440,
+               Pokedex.PIDGEY: 680, Pokedex.PIDGEOTTO: 1224, Pokedex.PIDGEOT: 2091, Pokedex.RATTATA: 582,
+               Pokedex.RATICATE: 1444, Pokedex.SPEAROW: 687, Pokedex.FEAROW: 1746, Pokedex.EKANS: 824,
+               Pokedex.ARBOK: 1767, Pokedex.PIKACHU: 888, Pokedex.RAICHU: 2028, Pokedex.SANDSHREW: 799,
+               Pokedex.SANDSLASH: 1810, Pokedex.NIDORAN_FEMALE: 876, Pokedex.NIDORINA: 1405, Pokedex.NIDOQUEEN: 2485,
+               Pokedex.NIDORAN_MALE: 843, Pokedex.NIDORINO: 1373, Pokedex.NIDOKING: 2475, Pokedex.CLEFAIRY: 1201,
+               Pokedex.CLEFABLE: 2398, Pokedex.VULPIX: 831, Pokedex.NINETALES: 2188, Pokedex.JIGGLYPUFF: 918,
+               Pokedex.WIGGLYTUFF: 2177, Pokedex.ZUBAT: 643, Pokedex.GOLBAT: 1921, Pokedex.ODDISH: 1148,
+               Pokedex.GLOOM: 1689, Pokedex.VILEPLUME: 2493, Pokedex.PARAS: 917, Pokedex.PARASECT: 1747,
+               Pokedex.VENONAT: 1029, Pokedex.VENOMOTH: 1890, Pokedex.DIGLETT: 457, Pokedex.DUGTRIO: 1169,
+               Pokedex.MEOWTH: 756, Pokedex.PERSIAN: 1632, Pokedex.PSYDUCK: 1110, Pokedex.GOLDUCK: 2387,
+               Pokedex.MANKEY: 879, Pokedex.PRIMEAPE: 1865, Pokedex.GROWLITHE: 1335, Pokedex.ARCANINE: 2984,
+               Pokedex.POLIWAG: 796, Pokedex.POLIWHIRL: 1340, Pokedex.POLIWRATH: 2505, Pokedex.ABRA: 600,
+               Pokedex.KADABRA: 1132, Pokedex.ALAKAZAM: 1814, Pokedex.MACHOP: 1090, Pokedex.MACHOKE: 1761,
+               Pokedex.MACHAMP: 2594, Pokedex.BELLSPROUT: 1117, Pokedex.WEEPINBELL: 1724, Pokedex.VICTREEBEL: 2531,
+               Pokedex.TENTACOOL: 905, Pokedex.TENTACRUEL: 2220, Pokedex.GEODUDE: 849, Pokedex.GRAVELER: 1434,
+               Pokedex.GOLEM: 2303, Pokedex.PONYTA: 1516, Pokedex.RAPIDASH: 2199, Pokedex.SLOWPOKE: 1219,
+               Pokedex.SLOWBRO: 2597, Pokedex.MAGNEMITE: 891, Pokedex.MAGNETON: 1880, Pokedex.FARFETCHD: 1264,
+               Pokedex.DODUO: 855, Pokedex.DODRIO: 1836, Pokedex.SEEL: 1107, Pokedex.DEWGONG: 2146,
+               Pokedex.GRIMER: 1284, Pokedex.MUK: 2603, Pokedex.SHELLDER: 823, Pokedex.CLOYSTER: 2053,
+               Pokedex.GASTLY: 804, Pokedex.HAUNTER: 1380, Pokedex.GENGAR: 2078, Pokedex.ONIX: 857,
+               Pokedex.DROWZEE: 1075, Pokedex.HYPNO: 2184, Pokedex.KRABBY: 792, Pokedex.KINGLER: 1646,
+               Pokedex.VOLTORB: 840, Pokedex.ELECTRODE: 1646, Pokedex.EXEGGCUTE: 1100, Pokedex.EXEGGUTOR: 2955,
+               Pokedex.CUBONE: 1007, Pokedex.MAROWAK: 1657, Pokedex.HITMONLEE: 1493, Pokedex.HITMONCHAN: 1517,
+               Pokedex.LICKITUNG: 1627, Pokedex.KOFFING: 1152, Pokedex.WEEZING: 2250, Pokedex.RHYHORN: 1182,
+               Pokedex.RHYDON: 2243, Pokedex.CHANSEY: 675, Pokedex.TANGELA: 1740, Pokedex.KANGASKHAN: 2043,
+               Pokedex.HORSEA: 795, Pokedex.SEADRA: 1713, Pokedex.GOLDEEN: 965, Pokedex.SEAKING: 2044,
+               Pokedex.STARYU: 938, Pokedex.STARMIE: 2182, Pokedex.MR_MIME: 1494, Pokedex.SCYTHER: 2074,
+               Pokedex.JYNX: 1717, Pokedex.ELECTABUZZ: 2119, Pokedex.MAGMAR: 2265, Pokedex.PINSIR: 2122,
+               Pokedex.TAUROS: 1845, Pokedex.MAGIKARP: 263, Pokedex.GYARADOS: 2689, Pokedex.LAPRAS: 2981,
+               Pokedex.DITTO: 920, Pokedex.EEVEE: 1077, Pokedex.VAPOREON: 2816, Pokedex.JOLTEON: 2140,
+               Pokedex.FLAREON: 2643, Pokedex.PORYGON: 1692, Pokedex.OMANYTE: 1120, Pokedex.OMASTAR: 2234,
+               Pokedex.KABUTO: 1105, Pokedex.KABUTOPS: 2130, Pokedex.AERODACTYL: 2165, Pokedex.SNORLAX: 3113,
+               Pokedex.ARTICUNO: 2978, Pokedex.ZAPDOS: 3114, Pokedex.MOLTRES: 3240, Pokedex.DRATINI: 983,
+               Pokedex.DRAGONAIR: 1748, Pokedex.DRAGONITE: 3500, Pokedex.MEWTWO: 4145, Pokedex.MEW: 3299}
+        return cps[self]
 
-    def __init__(self):
-        super(dict, self).__init__()
+    @property
+    def evolve_candies(self):
+        costs = {Pokedex.MISSINGNO: 0, Pokedex.BULBASAUR: 25, Pokedex.IVYSAUR: 100, Pokedex.VENUSAUR: 0,
+                 Pokedex.CHARMANDER: 25, Pokedex.CHARMELEON: 100, Pokedex.CHARIZARD: 0, Pokedex.SQUIRTLE: 25,
+                 Pokedex.WARTORTLE: 100, Pokedex.BLASTOISE: 0, Pokedex.CATERPIE: 12, Pokedex.METAPOD: 50,
+                 Pokedex.BUTTERFREE: 0, Pokedex.WEEDLE: 12, Pokedex.KAKUNA: 50, Pokedex.BEEDRILL: 0, Pokedex.PIDGEY: 12,
+                 Pokedex.PIDGEOTTO: 50, Pokedex.PIDGEOT: 0, Pokedex.RATTATA: 25, Pokedex.RATICATE: 0,
+                 Pokedex.SPEAROW: 50, Pokedex.FEAROW: 0, Pokedex.EKANS: 50, Pokedex.ARBOK: 0, Pokedex.PIKACHU: 50,
+                 Pokedex.RAICHU: 0, Pokedex.SANDSHREW: 50, Pokedex.SANDSLASH: 0, Pokedex.NIDORAN_FEMALE: 25,
+                 Pokedex.NIDORINA: 100, Pokedex.NIDOQUEEN: 0, Pokedex.NIDORAN_MALE: 25, Pokedex.NIDORINO: 100,
+                 Pokedex.NIDOKING: 0, Pokedex.CLEFAIRY: 50, Pokedex.CLEFABLE: 0, Pokedex.VULPIX: 50,
+                 Pokedex.NINETALES: 0, Pokedex.JIGGLYPUFF: 50, Pokedex.WIGGLYTUFF: 0, Pokedex.ZUBAT: 50,
+                 Pokedex.GOLBAT: 0, Pokedex.ODDISH: 25, Pokedex.GLOOM: 100, Pokedex.VILEPLUME: 0, Pokedex.PARAS: 50,
+                 Pokedex.PARASECT: 0, Pokedex.VENONAT: 50, Pokedex.VENOMOTH: 0, Pokedex.DIGLETT: 50, Pokedex.DUGTRIO: 0,
+                 Pokedex.MEOWTH: 50, Pokedex.PERSIAN: 0, Pokedex.PSYDUCK: 50, Pokedex.GOLDUCK: 0, Pokedex.MANKEY: 50,
+                 Pokedex.PRIMEAPE: 0, Pokedex.GROWLITHE: 50, Pokedex.ARCANINE: 0, Pokedex.POLIWAG: 25,
+                 Pokedex.POLIWHIRL: 100, Pokedex.POLIWRATH: 0, Pokedex.ABRA: 25, Pokedex.KADABRA: 100,
+                 Pokedex.ALAKAZAM: 0, Pokedex.MACHOP: 25, Pokedex.MACHOKE: 100, Pokedex.MACHAMP: 0,
+                 Pokedex.BELLSPROUT: 25, Pokedex.WEEPINBELL: 100, Pokedex.VICTREEBEL: 0, Pokedex.TENTACOOL: 50,
+                 Pokedex.TENTACRUEL: 0, Pokedex.GEODUDE: 25, Pokedex.GRAVELER: 100, Pokedex.GOLEM: 0,
+                 Pokedex.PONYTA: 50, Pokedex.RAPIDASH: 0, Pokedex.SLOWPOKE: 50, Pokedex.SLOWBRO: 0,
+                 Pokedex.MAGNEMITE: 50, Pokedex.MAGNETON: 0, Pokedex.FARFETCHD: 0, Pokedex.DODUO: 50, Pokedex.DODRIO: 0,
+                 Pokedex.SEEL: 50, Pokedex.DEWGONG: 0, Pokedex.GRIMER: 50, Pokedex.MUK: 0, Pokedex.SHELLDER: 50,
+                 Pokedex.CLOYSTER: 0, Pokedex.GASTLY: 25, Pokedex.HAUNTER: 100, Pokedex.GENGAR: 0, Pokedex.ONIX: 0,
+                 Pokedex.DROWZEE: 50, Pokedex.HYPNO: 0, Pokedex.KRABBY: 50, Pokedex.KINGLER: 0, Pokedex.VOLTORB: 50,
+                 Pokedex.ELECTRODE: 0, Pokedex.EXEGGCUTE: 50, Pokedex.EXEGGUTOR: 0, Pokedex.CUBONE: 50,
+                 Pokedex.MAROWAK: 0, Pokedex.HITMONLEE: 0, Pokedex.HITMONCHAN: 0, Pokedex.LICKITUNG: 0,
+                 Pokedex.KOFFING: 50, Pokedex.WEEZING: 0, Pokedex.RHYHORN: 50, Pokedex.RHYDON: 0, Pokedex.CHANSEY: 0,
+                 Pokedex.TANGELA: 0, Pokedex.KANGASKHAN: 0, Pokedex.HORSEA: 50, Pokedex.SEADRA: 0, Pokedex.GOLDEEN: 50,
+                 Pokedex.SEAKING: 0, Pokedex.STARYU: 50, Pokedex.STARMIE: 0, Pokedex.MR_MIME: 0, Pokedex.SCYTHER: 0,
+                 Pokedex.JYNX: 0, Pokedex.ELECTABUZZ: 0, Pokedex.MAGMAR: 0, Pokedex.PINSIR: 0, Pokedex.TAUROS: 0,
+                 Pokedex.MAGIKARP: 400, Pokedex.GYARADOS: 0, Pokedex.LAPRAS: 0, Pokedex.DITTO: 0, Pokedex.EEVEE: 25,
+                 Pokedex.VAPOREON: 0, Pokedex.JOLTEON: 0, Pokedex.FLAREON: 0, Pokedex.PORYGON: 0, Pokedex.OMANYTE: 50,
+                 Pokedex.OMASTAR: 0, Pokedex.KABUTO: 50, Pokedex.KABUTOPS: 0, Pokedex.AERODACTYL: 0, Pokedex.SNORLAX: 0,
+                 Pokedex.ARTICUNO: 0, Pokedex.ZAPDOS: 0, Pokedex.MOLTRES: 0, Pokedex.DRATINI: 25,
+                 Pokedex.DRAGONAIR: 100, Pokedex.DRAGONITE: 0, Pokedex.MEWTWO: 0, Pokedex.MEW: 0}
+        return costs[self]
 
-        # Some reflection, based on uppercase consts.
-        attributes = inspect.getmembers(Pokedex, lambda attr: not (inspect.isroutine(attr)))
-        for attr in attributes:
-            if attr[0].isupper():
-                self[attr[1]] = attr[0]
+    @property
+    def rarity(self):
+        rarities = {}
+        rarities[Rarity.MYTHIC] = [Pokedex.MEW]
+        rarities[Rarity.LEGENDARY] = [Pokedex.ZAPDOS, Pokedex.MOLTRES, Pokedex.MEWTWO, Pokedex.ARTICUNO]
+        rarities[Rarity.EPIC] = [Pokedex.DITTO, Pokedex.VENUSAUR, Pokedex.TAUROS, Pokedex.DRAGONITE, Pokedex.CLEFABLE,
+                                 Pokedex.CHARIZARD, Pokedex.BLASTOISE]
+        rarities[Rarity.VERY_RARE] = [Pokedex.WEEPINBELL, Pokedex.WARTORTLE, Pokedex.VILEPLUME, Pokedex.VICTREEBEL,
+                                      Pokedex.VENOMOTH, Pokedex.VAPOREON, Pokedex.SLOWBRO, Pokedex.RAICHU,
+                                      Pokedex.POLIWRATH, Pokedex.PINSIR, Pokedex.PIDGEOT, Pokedex.OMASTAR,
+                                      Pokedex.NIDOQUEEN, Pokedex.NIDOKING, Pokedex.MUK, Pokedex.MAROWAK, Pokedex.LAPRAS,
+                                      Pokedex.KANGASKHAN, Pokedex.KABUTOPS, Pokedex.IVYSAUR, Pokedex.GYARADOS,
+                                      Pokedex.GOLEM, Pokedex.GENGAR, Pokedex.EXEGGUTOR, Pokedex.DRAGONAIR,
+                                      Pokedex.DEWGONG, Pokedex.CHARMELEON, Pokedex.BEEDRILL, Pokedex.ALAKAZAM]
+        rarities[Rarity.RARE] = [Pokedex.WIGGLYTUFF, Pokedex.WEEZING, Pokedex.TENTACRUEL, Pokedex.TANGELA,
+                                 Pokedex.STARMIE, Pokedex.SNORLAX, Pokedex.SCYTHER, Pokedex.SEAKING, Pokedex.SEADRA,
+                                 Pokedex.RHYDON, Pokedex.RAPIDASH, Pokedex.PRIMEAPE, Pokedex.PORYGON, Pokedex.POLIWHIRL,
+                                 Pokedex.PARASECT, Pokedex.ONIX, Pokedex.OMANYTE, Pokedex.NINETALES, Pokedex.NIDORINO,
+                                 Pokedex.NIDORINA, Pokedex.MR_MIME, Pokedex.MAGMAR, Pokedex.MACHOKE, Pokedex.MACHAMP,
+                                 Pokedex.LICKITUNG, Pokedex.KINGLER, Pokedex.JOLTEON, Pokedex.HYPNO, Pokedex.HITMONCHAN,
+                                 Pokedex.GLOOM, Pokedex.GOLDUCK, Pokedex.FLAREON, Pokedex.FEAROW, Pokedex.FARFETCHD,
+                                 Pokedex.ELECTABUZZ, Pokedex.DUGTRIO, Pokedex.DRATINI, Pokedex.DODRIO, Pokedex.CLOYSTER,
+                                 Pokedex.CHANSEY, Pokedex.BUTTERFREE, Pokedex.ARCANINE, Pokedex.AERODACTYL]
+        rarities[Rarity.UNCOMMON] = [Pokedex.VULPIX, Pokedex.TENTACOOL, Pokedex.STARYU, Pokedex.SQUIRTLE,
+                                     Pokedex.SPEAROW, Pokedex.SHELLDER, Pokedex.SEEL, Pokedex.SANDSLASH,
+                                     Pokedex.RHYHORN, Pokedex.RATICATE, Pokedex.PSYDUCK, Pokedex.PONYTA,
+                                     Pokedex.PIKACHU, Pokedex.PIDGEOTTO, Pokedex.PERSIAN, Pokedex.METAPOD,
+                                     Pokedex.MAGNETON, Pokedex.KOFFING, Pokedex.KADABRA, Pokedex.KABUTO, Pokedex.KAKUNA,
+                                     Pokedex.JYNX, Pokedex.JIGGLYPUFF, Pokedex.HORSEA, Pokedex.HITMONLEE,
+                                     Pokedex.HAUNTER, Pokedex.GROWLITHE, Pokedex.GRIMER, Pokedex.GRAVELER,
+                                     Pokedex.GOLBAT, Pokedex.EXEGGCUTE, Pokedex.ELECTRODE, Pokedex.CUBONE,
+                                     Pokedex.CLEFAIRY, Pokedex.CHARMANDER, Pokedex.BULBASAUR, Pokedex.ARBOK,
+                                     Pokedex.ABRA]
+        rarities[Rarity.COMMON] = [Pokedex.WEEDLE, Pokedex.VOLTORB, Pokedex.VENONAT, Pokedex.SLOWPOKE,
+                                   Pokedex.SANDSHREW, Pokedex.POLIWAG, Pokedex.PARAS, Pokedex.ODDISH,
+                                   Pokedex.NIDORAN_MALE, Pokedex.NIDORAN_FEMALE, Pokedex.MEOWTH, Pokedex.MANKEY,
+                                   Pokedex.MAGNEMITE, Pokedex.MAGIKARP, Pokedex.MACHOP, Pokedex.KRABBY, Pokedex.GOLDEEN,
+                                   Pokedex.GEODUDE, Pokedex.GASTLY, Pokedex.EEVEE, Pokedex.EKANS, Pokedex.DROWZEE,
+                                   Pokedex.DODUO, Pokedex.DIGLETT, Pokedex.CATERPIE, Pokedex.BELLSPROUT]
+        rarities[Rarity.CRITTER] = [Pokedex.ZUBAT, Pokedex.PIDGEY, Pokedex.RATTATA]
 
-        # Ideally go back and lint for line lengths
-        self.rarity[Rarity.MYTHIC] = [self.MEW]
-        self.rarity[Rarity.LEGENDARY] = [
-            self.ZAPDOS, self.MOLTRES, self.MEWTWO, self.ARTICUNO
-        ]
-        self.rarity[Rarity.EPIC] = [
-            self.DITTO, self.VENUSAUR, self.TAUROS, self.DRAGONITE, self.CLEFABLE,
-            self.CHARIZARD, self.BLASTOISE
-        ]
-        self.rarity[Rarity.VERY_RARE] = [
-            self.WEEPINBELL, self.WARTORTLE, self.VILEPLUME, self.VICTREEBEL,
-            self.VENOMOTH, self.VAPOREON, self.SLOWBRO, self.RAICHU, self.POLIWRATH,
-            self.PINSIR, self.PIDGEOT, self.OMASTAR, self.NIDOQUEEN, self.NIDOKING,
-            self.MUK, self.MAROWAK, self.LAPRAS, self.KANGASKHAN, self.KABUTOPS, self.IVYSAUR,
-            self.GYARADOS, self.GOLEM, self.GENGAR, self.EXEGGUTOR, self.DRAGONAIR, self.DEWGONG,
-            self.CHARMELEON, self.BEEDRILL, self.ALAKAZAM
-        ]
-        self.rarity[Rarity.RARE] = [
-            self.WIGGLYTUFF, self.WEEZING, self.TENTACRUEL, self.TANGELA,
-            self.STARMIE, self.SNORLAX, self.SCYTHER, self.SEAKING, self.SEADRA,
-            self.RHYDON, self.RAPIDASH, self.PRIMEAPE, self.PORYGON, self.POLIWHIRL,
-            self.PARASECT, self.ONIX, self.OMANYTE, self.NINETALES, self.NIDORINO,
-            self.NIDORINA, self.MR_MIME, self.MAGMAR, self.MACHOKE, self.MACHAMP,
-            self.LICKITUNG, self.KINGLER, self.JOLTEON, self.HYPNO, self.HITMONCHAN,
-            self.GLOOM, self.GOLDUCK, self.FLAREON, self.FEAROW, self.FARFETCHD,
-            self.ELECTABUZZ, self.DUGTRIO, self.DRATINI, self.DODRIO, self.CLOYSTER,
-            self.CHANSEY, self.BUTTERFREE, self.ARCANINE, self.AERODACTYL
-        ]
-        self.rarity[Rarity.UNCOMMON] = [
-            self.VULPIX, self.TENTACOOL, self.STARYU, self.SQUIRTLE, self.SPEAROW,
-            self.SHELLDER, self.SEEL, self.SANDSLASH, self.RHYHORN, self.RATICATE,
-            self.PSYDUCK, self.PONYTA, self.PIKACHU, self.PIDGEOTTO, self.PERSIAN,
-            self.METAPOD, self.MAGNETON, self.KOFFING, self.KADABRA, self.KABUTO,
-            self.KAKUNA, self.JYNX, self.JIGGLYPUFF, self.HORSEA, self.HITMONLEE,
-            self.HAUNTER, self.GROWLITHE, self.GRIMER, self.GRAVELER, self.GOLBAT,
-            self.EXEGGCUTE, self.ELECTRODE, self.CUBONE, self.CLEFAIRY, self.CHARMANDER,
-            self.BULBASAUR, self.ARBOK, self.ABRA
-        ]
-        self.rarity[Rarity.COMMON] = [
-            self.WEEDLE, self.VOLTORB, self.VENONAT, self.SLOWPOKE, self.SANDSHREW,
-            self.POLIWAG, self.PARAS, self.ODDISH, self.NIDORAN_MALE, self.NIDORAN_FEMALE,
-            self.MEOWTH, self.MANKEY, self.MAGNEMITE, self.MAGIKARP, self.MACHOP, self.KRABBY,
-            self.GOLDEEN, self.GEODUDE, self.GASTLY, self.EEVEE, self.EKANS, self.DROWZEE,
-            self.DODUO, self.DIGLETT, self.CATERPIE, self.BELLSPROUT
-        ]
-        self.rarity[Rarity.CRITTER] = [self.ZUBAT, self.PIDGEY, self.RATTATA]
-
-        self.evolves = {
-            self.MISSINGNO: 0, self.BULBASAUR: 25, self.IVYSAUR: 100, self.VENUSAUR: 0,
-            self.CHARMANDER: 25, self.CHARMELEON: 100, self.CHARIZARD: 0, self.SQUIRTLE: 25,
-            self.WARTORTLE: 100, self.BLASTOISE: 0, self.CATERPIE: 12, self.METAPOD: 50,
-            self.BUTTERFREE: 0, self.WEEDLE: 12, self.KAKUNA: 50, self.BEEDRILL: 0, self.PIDGEY: 12,
-            self.PIDGEOTTO: 50, self.PIDGEOT: 0, self.RATTATA: 25, self.RATICATE: 0, self.SPEAROW: 50,
-            self.FEAROW: 0, self.EKANS: 50, self.ARBOK: 0, self.PIKACHU: 50, self.RAICHU: 0,
-            self.SANDSHREW: 50, self.SANDSLASH: 0, self.NIDORAN_FEMALE: 25, self.NIDORINA: 100,
-            self.NIDOQUEEN: 0, self.NIDORAN_MALE: 25, self.NIDORINO: 100, self.NIDOKING: 0,
-            self.CLEFAIRY: 50, self.CLEFABLE: 0, self.VULPIX: 50, self.NINETALES: 0, self.JIGGLYPUFF: 50,
-            self.WIGGLYTUFF: 0, self.ZUBAT: 50, self.GOLBAT: 0, self.ODDISH: 25, self.GLOOM: 100,
-            self.VILEPLUME: 0, self.PARAS: 50, self.PARASECT: 0, self.VENONAT: 50, self.VENOMOTH: 0,
-            self.DIGLETT: 50, self.DUGTRIO: 0, self.MEOWTH: 50, self.PERSIAN: 0, self.PSYDUCK: 50,
-            self.GOLDUCK: 0, self.MANKEY: 50, self.PRIMEAPE: 0, self.GROWLITHE: 50, self.ARCANINE: 0,
-            self.POLIWAG: 25, self.POLIWHIRL: 100, self.POLIWRATH: 0, self.ABRA: 25, self.KADABRA: 100,
-            self.ALAKAZAM: 0, self.MACHOP: 25, self.MACHOKE: 100, self.MACHAMP: 0, self.BELLSPROUT: 25,
-            self.WEEPINBELL: 100, self.VICTREEBEL: 0, self.TENTACOOL: 50, self.TENTACRUEL: 0,
-            self.GEODUDE: 25, self.GRAVELER: 100, self.GOLEM: 0, self.PONYTA: 50, self.RAPIDASH: 0,
-            self.SLOWPOKE: 50, self.SLOWBRO: 0, self.MAGNEMITE: 50, self.MAGNETON: 0, self.FARFETCHD: 0,
-            self.DODUO: 50, self.DODRIO: 0, self.SEEL: 50, self.DEWGONG: 0, self.GRIMER: 50, self.MUK: 0,
-            self.SHELLDER: 50, self.CLOYSTER: 0, self.GASTLY: 25, self.HAUNTER: 100, self.GENGAR: 0,
-            self.ONIX: 0, self.DROWZEE: 50, self.HYPNO: 0, self.KRABBY: 50, self.KINGLER: 0, self.VOLTORB: 50,
-            self.ELECTRODE: 0, self.EXEGGCUTE: 50, self.EXEGGUTOR: 0, self.CUBONE: 50, self.MAROWAK: 0,
-            self.HITMONLEE: 0, self.HITMONCHAN: 0, self.LICKITUNG: 0, self.KOFFING: 50, self.WEEZING: 0,
-            self.RHYHORN: 50, self.RHYDON: 0, self.CHANSEY: 0, self.TANGELA: 0, self.KANGASKHAN: 0,
-            self.HORSEA: 50, self.SEADRA: 0, self.GOLDEEN: 50, self.SEAKING: 0, self.STARYU: 50, self.STARMIE: 0,
-            self.MR_MIME: 0, self.SCYTHER: 0, self.JYNX: 0, self.ELECTABUZZ: 0, self.MAGMAR: 0, self.PINSIR: 0,
-            self.TAUROS: 0, self.MAGIKARP: 400, self.GYARADOS: 0, self.LAPRAS: 0, self.DITTO: 0, self.EEVEE: 25,
-            self.VAPOREON: 0, self.JOLTEON: 0, self.FLAREON: 0, self.PORYGON: 0, self.OMANYTE: 50, self.OMASTAR: 0,
-            self.KABUTO: 50, self.KABUTOPS: 0, self.AERODACTYL: 0, self.SNORLAX: 0, self.ARTICUNO: 0,
-            self.ZAPDOS: 0, self.MOLTRES: 0, self.DRATINI: 25, self.DRAGONAIR: 100, self.DRAGONITE: 0,
-            self.MEWTWO: 0, self.MEW: 0
-        }
-
-        self.max_cps = {
-            self.MISSINGNO: 0, self.BULBASAUR: 1072, self.IVYSAUR: 1632, self.VENUSAUR: 2580, self.CHARMANDER: 955,
-            self.CHARMELEON: 1557, self.CHARIZARD: 2602, self.SQUIRTLE: 1009, self.WARTORTLE: 1583,
-            self.BLASTOISE: 2542, self.CATERPIE: 444, self.METAPOD: 478, self.BUTTERFREE: 1455, self.WEEDLE: 449,
-            self.KAKUNA: 485, self.BEEDRILL: 1440, self.PIDGEY: 680, self.PIDGEOTTO: 1224, self.PIDGEOT: 2091,
-            self.RATTATA: 582, self.RATICATE: 1444, self.SPEAROW: 687, self.FEAROW: 1746, self.EKANS: 824,
-            self.ARBOK: 1767, self.PIKACHU: 888, self.RAICHU: 2028, self.SANDSHREW: 799, self.SANDSLASH: 1810,
-            self.NIDORAN_FEMALE: 876, self.NIDORINA: 1405, self.NIDOQUEEN: 2485, self.NIDORAN_MALE: 843,
-            self.NIDORINO: 1373, self.NIDOKING: 2475, self.CLEFAIRY: 1201, self.CLEFABLE: 2398, self.VULPIX: 831,
-            self.NINETALES: 2188, self.JIGGLYPUFF: 918, self.WIGGLYTUFF: 2177, self.ZUBAT: 643, self.GOLBAT: 1921,
-            self.ODDISH: 1148, self.GLOOM: 1689, self.VILEPLUME: 2493, self.PARAS: 917, self.PARASECT: 1747,
-            self.VENONAT: 1029, self.VENOMOTH: 1890, self.DIGLETT: 457, self.DUGTRIO: 1169, self.MEOWTH: 756,
-            self.PERSIAN: 1632, self.PSYDUCK: 1110, self.GOLDUCK: 2387, self.MANKEY: 879, self.PRIMEAPE: 1865,
-            self.GROWLITHE: 1335, self.ARCANINE: 2984, self.POLIWAG: 796, self.POLIWHIRL: 1340, self.POLIWRATH: 2505,
-            self.ABRA: 600, self.KADABRA: 1132, self.ALAKAZAM: 1814, self.MACHOP: 1090, self.MACHOKE: 1761,
-            self.MACHAMP: 2594, self.BELLSPROUT: 1117, self.WEEPINBELL: 1724, self.VICTREEBEL: 2531,
-            self.TENTACOOL: 905, self.TENTACRUEL: 2220, self.GEODUDE: 849, self.GRAVELER: 1434, self.GOLEM: 2303,
-            self.PONYTA: 1516, self.RAPIDASH: 2199, self.SLOWPOKE: 1219, self.SLOWBRO: 2597, self.MAGNEMITE: 891,
-            self.MAGNETON: 1880, self.FARFETCHD: 1264, self.DODUO: 855, self.DODRIO: 1836, self.SEEL: 1107,
-            self.DEWGONG: 2146, self.GRIMER: 1284, self.MUK: 2603, self.SHELLDER: 823, self.CLOYSTER: 2053,
-            self.GASTLY: 804, self.HAUNTER: 1380, self.GENGAR: 2078, self.ONIX: 857, self.DROWZEE: 1075,
-            self.HYPNO: 2184, self.KRABBY: 792, self.KINGLER: 1646, self.VOLTORB: 840, self.ELECTRODE: 1646,
-            self.EXEGGCUTE: 1100, self.EXEGGUTOR: 2955, self.CUBONE: 1007, self.MAROWAK: 1657, self.HITMONLEE: 1493,
-            self.HITMONCHAN: 1517, self.LICKITUNG: 1627, self.KOFFING: 1152, self.WEEZING: 2250, self.RHYHORN: 1182,
-            self.RHYDON: 2243, self.CHANSEY: 675, self.TANGELA: 1740, self.KANGASKHAN: 2043, self.HORSEA: 795,
-            self.SEADRA: 1713, self.GOLDEEN: 965, self.SEAKING: 2044, self.STARYU: 938, self.STARMIE: 2182,
-            self.MR_MIME: 1494, self.SCYTHER: 2074, self.JYNX: 1717, self.ELECTABUZZ: 2119, self.MAGMAR: 2265,
-            self.PINSIR: 2122, self.TAUROS: 1845, self.MAGIKARP: 263, self.GYARADOS: 2689, self.LAPRAS: 2981,
-            self.DITTO: 920, self.EEVEE: 1077, self.VAPOREON: 2816, self.JOLTEON: 2140, self.FLAREON: 2643,
-            self.PORYGON: 1692, self.OMANYTE: 1120, self.OMASTAR: 2234, self.KABUTO: 1105, self.KABUTOPS: 2130,
-            self.AERODACTYL: 2165, self.SNORLAX: 3113, self.ARTICUNO: 2978, self.ZAPDOS: 3114, self.MOLTRES: 3240,
-            self.DRATINI: 983, self.DRAGONAIR: 1748, self.DRAGONITE: 3500, self.MEWTWO: 4145, self.MEW: 3299
-        }
-
-    def get_id_by_name(self, name):
-        return self[name]
-
-    def get_rarity_by_name(self, name):
-        return self.get_rarity_by_id(self.get_id_by_name(name))
-
-    def get_rarity_by_id(self, pokemon_id):
-        for rarity in self.rarity:
-            if pokemon_id in self.rarity[rarity]:
+        for rarity in rarities:
+            if self.value in rarities[rarity]:
                 return rarity
 
-    def get_max_cp_by_id(self, pokemon_id):
-        return self.max_cps[pokemon_id]
+    def __str__(self):
+        if self.value == 1:
+            return "フシギダネ"
+        elif self.value == 2:
+            return "フシギソウ"
+        elif self.value == 3:
+            return "フシギバナ"
+        elif self.value == 4:
+            return "ヒトカゲ"
+        elif self.value == 5:
+            return "リザード"
+        elif self.value == 6:
+            return "リザードン"
+        elif self.value == 7:
+            return "ゼニガメ"
+        elif self.value == 8:
+            return "カメール"
+        elif self.value == 9:
+            return "カメックス"
+        elif self.value == 10:
+            return "キャタピー"
+        elif self.value == 11:
+            return "トランセル"
+        elif self.value == 12:
+            return "バタフリー"
+        elif self.value == 13:
+            return "ビードル"
+        elif self.value == 14:
+            return "コクーン"
+        elif self.value == 15:
+            return "スピアー"
+        elif self.value == 16:
+            return "ポッポ"
+        elif self.value == 17:
+            return "ピジョン"
+        elif self.value == 18:
+            return "ピジョット"
+        elif self.value == 19:
+            return "コラッタ"
+        elif self.value == 20:
+            return "ラッタ"
+        elif self.value == 21:
+            return "オニスズメ"
+        elif self.value == 22:
+            return "オニドリル"
+        elif self.value == 23:
+            return "アーボ"
+        elif self.value == 24:
+            return "アーボック"
+        elif self.value == 25:
+            return "ピカチュウ"
+        elif self.value == 26:
+            return "ライチュウ"
+        elif self.value == 27:
+            return "サンド"
+        elif self.value == 28:
+            return "サンドパン"
+        elif self.value == 29:
+            return "ニドラン♀"
+        elif self.value == 30:
+            return "ニドリーナ"
+        elif self.value == 31:
+            return "ニドクイン"
+        elif self.value == 32:
+            return "ニドラン♂"
+        elif self.value == 33:
+            return "ニドリーノ"
+        elif self.value == 34:
+            return "ニドキング"
+        elif self.value == 35:
+            return "ピッピ"
+        elif self.value == 36:
+            return "ピクシー"
+        elif self.value == 37:
+            return "ロコン"
+        elif self.value == 38:
+            return "キュウコン"
+        elif self.value == 39:
+            return "プリン"
+        elif self.value == 40:
+            return "プクリン"
+        elif self.value == 41:
+            return "ズバット"
+        elif self.value == 42:
+            return "ゴルバット"
+        elif self.value == 43:
+            return "ナゾノクサ"
+        elif self.value == 44:
+            return "クサイハナ"
+        elif self.value == 45:
+            return "ラフレシア"
+        elif self.value == 46:
+            return "パラス"
+        elif self.value == 47:
+            return "パラセクト"
+        elif self.value == 48:
+            return "コンパン"
+        elif self.value == 49:
+            return "モルフォン"
+        elif self.value == 50:
+            return "ディグダ"
+        elif self.value == 51:
+            return "ダグトリオ"
+        elif self.value == 52:
+            return "ニャース"
+        elif self.value == 53:
+            return "ペルシアン"
+        elif self.value == 54:
+            return "コダック"
+        elif self.value == 55:
+            return "ゴルダック"
+        elif self.value == 56:
+            return "マンキー"
+        elif self.value == 57:
+            return "オコリザル"
+        elif self.value == 58:
+            return "ガーディ"
+        elif self.value == 59:
+            return "ウインディ"
+        elif self.value == 60:
+            return "ニョロモ"
+        elif self.value == 61:
+            return "ニョロゾ"
+        elif self.value == 62:
+            return "ニョロボン"
+        elif self.value == 63:
+            return "ケーシィ"
+        elif self.value == 64:
+            return "ユンゲラー"
+        elif self.value == 65:
+            return "フーディン"
+        elif self.value == 66:
+            return "ワンリキー"
+        elif self.value == 67:
+            return "ゴーリキー"
+        elif self.value == 68:
+            return "カイリキー"
+        elif self.value == 69:
+            return "マダツボミ"
+        elif self.value == 70:
+            return "ウツドン"
+        elif self.value == 71:
+            return "ウツボット"
+        elif self.value == 72:
+            return "メノクラゲ"
+        elif self.value == 73:
+            return "ドククラゲ"
+        elif self.value == 74:
+            return "イシツブテ"
+        elif self.value == 75:
+            return "ゴローン"
+        elif self.value == 76:
+            return "ゴローニャ"
+        elif self.value == 77:
+            return "ポニータ"
+        elif self.value == 78:
+            return "ギャロップ"
+        elif self.value == 79:
+            return "ヤドン"
+        elif self.value == 80:
+            return "ヤドラン"
+        elif self.value == 81:
+            return "コイル"
+        elif self.value == 82:
+            return "レアコイル"
+        elif self.value == 83:
+            return "カモネギ"
+        elif self.value == 84:
+            return "ドードー"
+        elif self.value == 85:
+            return "ドードリオ"
+        elif self.value == 86:
+            return "パウワウ"
+        elif self.value == 87:
+            return "ジュゴン"
+        elif self.value == 88:
+            return "ベトベター"
+        elif self.value == 89:
+            return "ベトベトン"
+        elif self.value == 90:
+            return "シェルダー"
+        elif self.value == 91:
+            return "パルシェン"
+        elif self.value == 92:
+            return "ゴース"
+        elif self.value == 93:
+            return "ゴースト"
+        elif self.value == 94:
+            return "ゲンガー"
+        elif self.value == 95:
+            return "イワーク"
+        elif self.value == 96:
+            return "スリープ"
+        elif self.value == 97:
+            return "スリーパー"
+        elif self.value == 98:
+            return "クラブ"
+        elif self.value == 99:
+            return "キングラー"
+        elif self.value == 100:
+            return "ビリリダマ"
+        elif self.value == 101:
+            return "マルマイン"
+        elif self.value == 102:
+            return "タマタマ"
+        elif self.value == 103:
+            return "ナッシー"
+        elif self.value == 104:
+            return "カラカラ"
+        elif self.value == 105:
+            return "ガラガラ"
+        elif self.value == 106:
+            return "サワムラー"
+        elif self.value == 107:
+            return "エビワラー"
+        elif self.value == 108:
+            return "ベロリンガ"
+        elif self.value == 109:
+            return "ドガース"
+        elif self.value == 110:
+            return "マタドガス"
+        elif self.value == 111:
+            return "サイホーン"
+        elif self.value == 112:
+            return "サイドン"
+        elif self.value == 113:
+            return "ラッキー"
+        elif self.value == 114:
+            return "モンジャラ"
+        elif self.value == 115:
+            return "ガルーラ"
+        elif self.value == 116:
+            return "タッツー"
+        elif self.value == 117:
+            return "シードラ"
+        elif self.value == 118:
+            return "トサキント"
+        elif self.value == 119:
+            return "アズマオウ"
+        elif self.value == 120:
+            return "ヒトデマン"
+        elif self.value == 121:
+            return "スターミー"
+        elif self.value == 122:
+            return "バリヤード"
+        elif self.value == 123:
+            return "ストライク"
+        elif self.value == 124:
+            return "ルージュラ"
+        elif self.value == 125:
+            return "エレブー"
+        elif self.value == 126:
+            return "ブーバー"
+        elif self.value == 127:
+            return "カイロス"
+        elif self.value == 128:
+            return "ケンタロス"
+        elif self.value == 129:
+            return "コイキング"
+        elif self.value == 130:
+            return "ギャラドス"
+        elif self.value == 131:
+            return "ラプラス"
+        elif self.value == 132:
+            return "メタモン"
+        elif self.value == 133:
+            return "イーブイ"
+        elif self.value == 134:
+            return "シャワーズ"
+        elif self.value == 135:
+            return "サンダース"
+        elif self.value == 136:
+            return "ブースター"
+        elif self.value == 137:
+            return "ポリゴン"
+        elif self.value == 138:
+            return "オムナイト"
+        elif self.value == 139:
+            return "オムスター"
+        elif self.value == 140:
+            return "カブト"
+        elif self.value == 141:
+            return "カブトプス"
+        elif self.value == 142:
+            return "プテラ"
+        elif self.value == 143:
+            return "カビゴン"
+        elif self.value == 144:
+            return "フリーザー"
+        elif self.value == 145:
+            return "サンダー"
+        elif self.value == 146:
+            return "ファイヤー"
+        elif self.value == 147:
+            return "ミニリュウ"
+        elif self.value == 148:
+            return "ハクリュー"
+        elif self.value == 149:
+            return "カイリュー"
+        elif self.value == 150:
+            return "ミュウツー"
+        elif self.value == 151:
+            return "ミュウ"
+        else:
+            return "不明"
 
-
-class Rarity(object):
+        
+class Rarity(enum.Enum):
     CRITTER = 0
     COMMON = 1
     UNCOMMON = 2
@@ -310,5 +599,22 @@ class Rarity(object):
     LEGENDARY = 6
     MYTHIC = 7
 
-
-pokedex = Pokedex()
+    def __str__(self):
+        if self.value == 0:
+            return "E"
+        elif self.value == 0:
+            return "D"
+        elif self.value == 0:
+            return "C"
+        elif self.value == 0:
+            return "B"
+        elif self.value == 0:
+            return "A"
+        elif self.value == 0:
+            return "S"
+        elif self.value == 0:
+            return "SS"
+        elif self.value == 0:
+            return "SSS"
+        else:
+            return "???"

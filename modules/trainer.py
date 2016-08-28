@@ -62,11 +62,11 @@ class Trainer(object):
 
             wild_pokemon_routes = Route.create_routes(map_objects.wild_pokemons)
             for wild_pokemon_route in wild_pokemon_routes:
-                self.session.walk_and_catch(wild_pokemon_route)
+                self.session.walk_and_catch(wild_pokemon_route, catch_on_way=False)
 
             catchable_pokemon_routes = Route.create_routes(map_objects.catchable_pokemons)
             for catchable_pokemon_route in catchable_pokemon_routes:
-                self.session.walk_and_catch(catchable_pokemon_route)
+                self.session.walk_and_catch(catchable_pokemon_route, catch_on_way=False)
 
             self.session.walk_and_spin(pokestop_route)
             time.sleep(10)

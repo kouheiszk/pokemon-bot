@@ -4,7 +4,7 @@ import logging
 
 from datetime import datetime
 
-from modules.pokedex import pokedex
+from modules.pokedex import Pokedex
 
 log = logging.getLogger("pokemon_bot")
 
@@ -13,7 +13,7 @@ class Pokemon(object):
     def __init__(self, p_dict):
         self.id = p_dict.get("id", None)
         self.pokemon_id = p_dict.get("pokemon_id", p_dict.get("pokemon_data", {}).get("pokemon_id"))
-        self.rarity = pokedex.get_rarity_by_id(p_dict.get("pokemon_id"))
+        self.pokedex = Pokedex(self.pokemon_id)
         self.stamina = p_dict.get("stamina", 0)
         self.individual_stamina = p_dict.get("individual_stamina", 0)
         self.individual_defense = p_dict.get("individual_defense", 0)
@@ -39,11 +39,11 @@ class Pokemon(object):
 
     @property
     def max_cp(self):
-        return pokedex.get_max_cp_by_id(self.pokemon_id)
+        return self.pokedex.max_cp
 
     @property
     def name(self):
-        return pokedex[self.pokemon_id]
+        return "{}".format(self.pokedex)
 
     def __getattr__(self, attr):
         return self._dict.get(attr)
