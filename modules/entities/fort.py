@@ -3,7 +3,7 @@
 import enum
 import logging
 
-from modules.item import items
+from modules.item import Item
 
 log = logging.getLogger("pokemon_bot")
 
@@ -25,7 +25,7 @@ class Fort(object):
                 s += "## チェイン: {}\n".format(self.fort_search.chain_hack_sequence_number)
                 s += "## スピンで得たアイテム:\n"
                 for item_awarded in self.fort_search.items_awarded:
-                    s += "- {}: {}個\n".format(items[item_awarded["item_id"]], item_awarded["item_count"])
+                    s += "- {}: {}個\n".format(Item(item_awarded["item_id"]), item_awarded["item_count"])
             else:
                 s += "## スピン: {}\n".format(self.fort_search.result)
         return s

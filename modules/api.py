@@ -10,7 +10,7 @@ from modules.entities.encounter import Encounter
 from modules.entities.fort import Fort
 from modules.entities.level_up_rewards import LevelUpRewards
 from modules.exceptions import GeneralPokemonBotException
-from modules.item import items
+from modules.item import Item
 from modules.utilities import get_encryption_lib_path
 
 log = logging.getLogger("pokemon_bot")
@@ -95,7 +95,7 @@ class Api(object):
         return use_item_capture_dict
 
     def catch_pokemon(self, state, pokemon,
-                      pokeball=items.POKE_BALL,
+                      pokeball=Item.POKE_BALL,
                       normalized_reticle_size=1.950,
                       hit_pokemon=True,
                       spin_modifier=0.850,

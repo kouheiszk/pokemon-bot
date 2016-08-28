@@ -9,7 +9,7 @@ from IPython import embed
 
 from modules.api import Api
 from modules.exceptions import GeneralPokemonBotException
-from modules.item import items
+from modules.item import Item
 from modules.location import Location
 from modules.pokedex import pokedex
 from modules.route import Route
@@ -93,7 +93,7 @@ class Session(object):
         bag = self._state.inventory.bag
 
         # Clear out all of a crtain type
-        tossable_item_ids = [items.POTION, items.SUPER_POTION, items.REVIVE]
+        tossable_item_ids = [Item.POTION, Item.SUPER_POTION, Item.REVIVE]
         for item_id in tossable_item_ids:
             if item_id in bag and bag[item_id] > 0:
                 self._api.recycle_inventory_item(self._state, item_id,
@@ -102,10 +102,10 @@ class Session(object):
 
         # Limit a certain type
         limited_items = {
-            items.POKE_BALL: 50,
-            items.GREAT_BALL: 100,
-            items.ULTRA_BALL: 150,
-            items.RAZZ_BERRY: 25
+            Item.POKE_BALL: 50,
+            Item.GREAT_BALL: 100,
+            Item.ULTRA_BALL: 150,
+            Item.RAZZ_BERRY: 25
         }
         for item_id in limited_items:
             if item_id in bag and bag[item_id] > limited_items[item_id]:
@@ -143,13 +143,13 @@ class Session(object):
         # Grab needed data from proto
         chances = encounter.capture_probability["capture_probability"]
         balls = encounter.capture_probability["pokeball_type"]
-        balls = balls or [items.POKE_BALL, items.GREAT_BALL, items.ULTRA_BALL]
+        balls = balls or [Item.POKE_BALL, Item.GREAT_BALL, Item.ULTRA_BALL]
         bag = self._state.inventory.bag
 
         # Attempt catch
         while True:
-            best_ball = items.UNKNOWN
-            alt_ball = items.UNKNOWN
+            best_ball = Item.UNKNOWN
+            alt_ball = Item.UNKNOWN
 
             # Check for balls and see if we pass
             # wanted threshold
@@ -162,15 +162,15 @@ class Session(object):
 
             # If we can't determine a ball, try a berry
             # or use a lower class ball
-            if best_ball == items.UNKNOWN:
-                if not encounter.berried and bag.get(items.RAZZ_BERRY, 0) > 0:
+            if best_ball == Item.UNKNOWN:
+                if not encounter.berried and bag.get(Item.RAZZ_BERRY, 0) > 0:
                     log.info("> ラズベリーを使う")
-                    self._api.use_item_capture(items.RAZZ_BERRY, pokemon, delay=delay + random.randint(0, 2))
+                    self._api.use_item_capture(Item.RAZZ_BERRY, pokemon, delay=delay + random.randint(0, 2))
                     encounter.berried = True
                     continue
 
                 # if no alt ball, there are no balls
-                elif alt_ball == items.UNKNOWN:
+                elif alt_ball == Item.UNKNOWN:
                     raise GeneralPokemonBotException("Out of usable balls")
                 else:
                     best_ball = alt_ball

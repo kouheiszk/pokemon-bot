@@ -3,11 +3,9 @@
 import logging
 import pprint
 
-from IPython import embed
-
 from modules.egg import Egg
 from modules.incubator import Incubator
-from modules.item import items
+from modules.item import Item
 from modules.pokedex import pokedex
 from modules.pokemon import Pokemon
 from modules.stats import Stats
@@ -109,14 +107,14 @@ class Inventory(object):
 
         s += "## バッグ:\n"
         for key in self.bag:
-            s += "- {0}: {1}\n".format(items[key], self.bag[key])
+            s += "- {0}: {1}\n".format(Item(key), self.bag[key])
 
-        s += "## 孵化器:\n"
+        s += "## ふかそうち:\n"
         for _, incubator in self.incubators.items():
             remaining = incubator.uses_remaining
             if remaining:
-                s += "- {0} あと{1}回\n".format(incubator.id, remaining)
+                s += "- ふかそうち（あと{}回）\n".format(remaining)
             else:
-                s += "- {0} 無限孵化器\n".format(incubator.id, remaining)
+                s += "- ムゲンふかそうち\n"
 
         return s
