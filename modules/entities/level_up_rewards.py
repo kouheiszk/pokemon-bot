@@ -13,11 +13,12 @@ class LevelUpRewards(object):
         self.__dict__.update(d)
 
     def __str__(self):
-        s = "\n# レベルアップ報酬\n"
+        s = "\n# レベルアップ\n"
         s += "## レベル: {}\n".format(self.level)
-        s += "## スピンで得たアイテム:\n"
-        for item_awarded in self.items_awarded:
-            s += "- {}: {}個\n".format(Item(item_awarded["item_id"]), item_awarded["item_count"])
+        s += "## レベルアップ報酬:\n"
+        if self.items_awarded:
+            for item_awarded in self.items_awarded:
+                s += "- {}: {}個\n".format(Item(item_awarded["item_id"]), item_awarded["item_count"])
         else:
             s += "- 無し\n"
         return s

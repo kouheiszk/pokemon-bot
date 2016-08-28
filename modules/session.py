@@ -50,18 +50,18 @@ class Session(object):
     def clean_pokemon(self, threshold_rate=20, delay=5):
         log.info(">> 博士にポケモンを送る...")
 
-        evolvable_pokemon_ids = [Pokedex.PIDGEY, Pokedex.RATTATA, Pokedex.ZUBAT]
+        evolvable_pokemon_ids = [Pokedex.PIDGEY.value, Pokedex.RATTATA.value, Pokedex.ZUBAT.value]
         to_evolve_pokemons = {pokemon_id: [] for pokemon_id in evolvable_pokemon_ids}
 
         # 進化コストのかからないポケモン以外を博士に返す
         for _, pokemon in self._state.inventory.party.items():
             # 規定のCP以下のポケモンは博士に返す
             if pokemon.cp < pokemon.max_cp * threshold_rate / 100:
-                if pokemon.id in evolvable_pokemon_ids:
+                if pokemon.pokemon_id in evolvable_pokemon_ids:
                     to_evolve_pokemons[pokemon.pokemon_id].append(pokemon)
                     continue
 
-                log.info("{} (CP:{} < {}x{}%)...".format(pokemon.name, pokemon.cp, pokemon.max_cp, threshold_rate))
+                log.info("> {}を送る (CP:{} < {}x{}%)...".format(pokemon.name, pokemon.cp, pokemon.max_cp, threshold_rate))
                 self._api.release_pokemon(pokemon, delay=delay)
 
         # ポケモンを進化させる
@@ -89,11 +89,11 @@ class Session(object):
                 log.info("Release Result: {}".format(release_result))
 
     def clean_inventory(self, delay=5):
-        log.info("Cleaning out Inventory...")
+        log.info(">> アイテムポーチの中身を整理...")
         bag = self._state.inventory.bag
 
         # Clear out all of a crtain type
-        tossable_item_ids = [Item.POTION, Item.SUPER_POTION, Item.REVIVE]
+        tossable_item_ids = [Item.POTION.value, Item.SUPER_POTION.value, Item.REVIVE.value]
         for item_id in tossable_item_ids:
             if item_id in bag and bag[item_id] > 0:
                 self._api.recycle_inventory_item(self._state, item_id,
@@ -102,13 +102,14 @@ class Session(object):
 
         # Limit a certain type
         limited_items = {
-            Item.POKE_BALL: 50,
-            Item.GREAT_BALL: 100,
-            Item.ULTRA_BALL: 150,
-            Item.RAZZ_BERRY: 25
+            Item.POKE_BALL.value: 50,
+            Item.GREAT_BALL.value: 100,
+            Item.ULTRA_BALL.value: 150,
+            Item.RAZZ_BERRY.value: 25
         }
         for item_id in limited_items:
             if item_id in bag and bag[item_id] > limited_items[item_id]:
+                log.debug("> {}を捨てる...".format(Item(item_id)))
                 self._api.recycle_inventory_item(self._state, item_id,
                                                  count=(bag[item_id] - limited_items[item_id]),
                                                  delay=delay)
@@ -120,7 +121,7 @@ class Session(object):
             return None
 
         log.info(">> {}捕獲開始...".format(pokemon.name))
-        self.walk_on(route, step=1.6, catch_on_way=catch_on_way)
+        self.walk_on(route, catch_on_way=catch_on_way)
         result = self.encounter_and_catch(pokemon)
         log.info(result)
         # ポケモンを捕まえた後はしばらく休む
@@ -141,8 +142,8 @@ class Session(object):
             raise GeneralPokemonBotException("Can't catch! Party is full!")
 
         # Grab needed data from proto
-        chances = encounter.capture_probability["capture_probability"]
-        balls = encounter.capture_probability["pokeball_type"]
+        chances = encounter.capture_probability.get("capture_probability", [])
+        balls = encounter.capture_probability.get("pokeball_type", [])
         balls = balls or [Item.POKE_BALL, Item.GREAT_BALL, Item.ULTRA_BALL]
         bag = self._state.inventory.bag
 
@@ -164,7 +165,7 @@ class Session(object):
             # or use a lower class ball
             if best_ball == Item.UNKNOWN:
                 if not encounter.berried and bag.get(Item.RAZZ_BERRY, 0) > 0:
-                    log.info("> ラズベリーを使う")
+                    log.info("> ラズベリーを使用...")
                     self._api.use_item_capture(Item.RAZZ_BERRY, pokemon, delay=delay + random.randint(0, 2))
                     encounter.berried = True
                     continue
@@ -193,7 +194,7 @@ class Session(object):
 
     # Walk to fort and spin
     def walk_and_spin(self, route):
-        self.walk_on(route, step=1.6)
+        self.walk_on(route)
         self.spin_pokestop(route.instance)
 
     def spin_pokestop(self, pokestop, delay=2):
@@ -238,7 +239,7 @@ class Session(object):
             for pokemon in (map_objects.wild_pokemons + map_objects.catchable_pokemons):
                 self.walk_and_catch(Route(pokemon), catch_on_way=False)
 
-    def walk_on(self, route, epsilon=10, step=3.2, catch_on_way=True):
+    def walk_on(self, route, epsilon=10, step=2.4, catch_on_way=True):
         if route.legs is None:
             self.walk_to(route.instance.latitude,
                          route.instance.longitude,
@@ -270,7 +271,7 @@ class Session(object):
 
         steps = 1
         while dist > epsilon:
-            log.info("歩いた距離 {0:.2f}m / {1:.2f}m".format(closest - dist, closest))
+            log.debug("歩いた距離 {0:.2f}m / {1:.2f}m".format(closest - dist, closest))
             latitude -= d_lat
             longitude -= d_lon
             steps %= delay

@@ -34,7 +34,7 @@ class Location(object):
         self.longitude = longitude
         self.altitude = altitude
 
-        log.debug('現在位置: lat:{}, lng:{}, alt:{}'.format(self.latitude, self.longitude, self.altitude))
+        log.info('現在位置: {},{}'.format(self.latitude, self.longitude))
 
     def get_position(self):
         return self.latitude + random.uniform(-0.0000005, 0.0000005), \

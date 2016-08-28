@@ -588,7 +588,7 @@ class Pokedex(enum.Enum):
         else:
             return "不明"
 
-        
+
 class Rarity(enum.Enum):
     CRITTER = 0
     COMMON = 1
