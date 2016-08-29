@@ -9,7 +9,6 @@ import os
 from modules.exceptions import GeneralPokemonBotException
 
 log = logging.getLogger("pokemon_bot")
-user = "kouhei"
 
 
 class Config(object):
@@ -20,7 +19,7 @@ class Config(object):
         load = {}
         if os.path.isfile(config_file):
             with open(config_file) as data:
-                load.update(json.load(data)[user])
+                load.update(json.load(data))
 
         # Read passed in Arguments
         required = lambda x: not x in load
