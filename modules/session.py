@@ -5,8 +5,6 @@ import random
 
 import time
 
-from IPython import embed
-
 from modules.api import Api
 from modules.exceptions import GeneralPokemonBotException
 from modules.item import Item
@@ -127,21 +125,22 @@ class Session(object):
 
         self._state.catch.start_catching(pokemon)
 
-        # Start encounter
+        # エンカウント開始
         encounter = self._api.encounter_pokemon(self._state, pokemon, delay=delay)
 
-        # If party full
+        # パーティーがいっぱいの場合
         if encounter.status.is_party_full:
             raise GeneralPokemonBotException("Can't catch! Party is full!")
+
+        # それ以外の場合で捕まえられない場合はNoneを返す
+        if not encounter.status.is_catchable:
+            return None
 
         # Grab needed data from proto
         chances = encounter.capture_probability.get("capture_probability", [])
         balls = encounter.capture_probability.get("pokeball_type", [])
         balls = balls or [Item.POKE_BALL, Item.GREAT_BALL, Item.ULTRA_BALL]
         bag = self._state.inventory.bag
-
-        if not chances:
-            embed()
 
         # Attempt catch
         while True:

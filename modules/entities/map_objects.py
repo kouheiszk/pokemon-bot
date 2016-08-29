@@ -108,7 +108,7 @@ class MapObjects(object):
             for pokemon in self.catchable_pokemons:
                 s += "- {} (残り{:.0f}分)\n".format(pokemon.name, (datetime.now() - pokemon.expiration_time).seconds / 3600)
         else:
-            s += "## ポケモン: 0"
+            s += "## ポケモン: 0\n"
 
         s += "## ポケストップ: {0}\n".format(len(self.pokestops))
         s += "## ジム: {0}\n".format(len(self.gyms))

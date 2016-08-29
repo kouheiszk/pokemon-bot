@@ -3,8 +3,6 @@
 import enum
 import logging
 
-from modules.pokedex import Pokedex
-
 log = logging.getLogger("pokemon_bot")
 
 
@@ -48,6 +46,10 @@ class EncounterResult(enum.Enum):
     NOT_IN_RANGE = 5
     ALREADY_HAPPENED = 6
     POKEMON_INVENTORY_FULL = 7
+
+    @property
+    def is_catchable(self):
+        return self.value == 1
 
     @property
     def is_party_full(self):
