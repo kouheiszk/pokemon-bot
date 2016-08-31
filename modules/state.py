@@ -12,9 +12,9 @@ from modules.entities.settings import Settings
 class State(object):
     def __init__(self):
         self.player = Player()
-        self.hatched_eggs = HatchedEggs()
         self.inventory = Inventory()
         self.badges = Badges()
         self.settings = Settings()
         self.map_objects = MapObjects()
         self.catch = Catch()
+        self.hatched_eggs = HatchedEggs(self.inventory)

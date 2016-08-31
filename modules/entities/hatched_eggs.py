@@ -6,12 +6,36 @@ log = logging.getLogger("pokemon_bot")
 
 
 class HatchedEggs(object):
-    def __init__(self, d={}):
-        self.__dict__.update(d)
+    def __init__(self, inventory):
+        self._inventory = inventory
+        self.eggs = []
 
     def parse_eggs_dict(self, d):
-        self.__dict__.update(d)
-        if len(d) >= 2:
-            log.info("#####################################")
-            log.info(d)
-            log.info("#####################################")
+        pokemon_ids = d.get("pokemon_id", [])
+        for index, pokemon_id in enumerate(pokemon_ids):
+            stardust = d.get("stardust_awarded", [0] * len(pokemon_ids))[index]
+            experience = d.get("experience_awarded", [0] * len(pokemon_ids))[index]
+            candy = d.get("candy_awarded", [0] * len(pokemon_ids))[index]
+            self.eggs.append(HatchedEgg(pokemon_id, stardust, experience, candy))
+
+    def __str__(self):
+        s = "\n# ふかしたたまご\n"
+        if self.eggs:
+            while self.eggs:
+                egg = self.eggs.pop()
+                s += "## ポケモン: {}\n".format(self._inventory.party[egg.pokemon_id])
+                s += "- 経験値: +{}\n".format(egg.experience)
+                s += "- ほしのすな: +{}\n".format(egg.stardust)
+                s += "- あめ: +{}\n".format(egg.candy)
+        else:
+            s += "- なし\n"
+
+        return s
+
+
+class HatchedEgg(object):
+    def __init__(self, pokemon_id, stardust, experience, candy):
+        self.pokemon_id = pokemon_id
+        self.stardust = stardust
+        self.experience = experience
+        self.candy = candy

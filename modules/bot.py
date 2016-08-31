@@ -38,7 +38,11 @@ class Bot(object):
     def clean_inventory(self):
         self.session.clean_inventory()
 
-    # 卵を孵化器に入れる
+    # ふかしたたまごをチェック
+    def check_hatched_eggs(self):
+        log.info(self.session.hatched_eggs)
+
+    # たまごをふかきに入れる
     def set_eggs_if_needed(self):
         self.session.set_eggs()
 
@@ -56,6 +60,7 @@ class Bot(object):
             log.info(map_objects)
 
             # 歩き始める前にたまごを孵化器に入れる
+            self.check_hatched_eggs()
             self.set_eggs_if_needed()
 
             # レベルアップリワードを受け取る

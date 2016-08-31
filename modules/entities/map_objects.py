@@ -5,6 +5,8 @@ import pprint
 import time
 from datetime import datetime
 
+from IPython import embed
+
 from modules.entities.pokemon import Pokemon
 from modules.entities.pokestop import Pokestop
 from modules.location import Location
@@ -106,7 +108,7 @@ class MapObjects(object):
         if len(self.catchable_pokemons) > 0:
             s += "## ポケモン:\n"
             for pokemon in self.catchable_pokemons:
-                s += "- {} (残り{:.0f}分)\n".format(pokemon.name, (datetime.now() - pokemon.expiration_time).seconds / 3600)
+                s += "- {} (残り{:.0f}分)\n".format(pokemon.name, (pokemon.expiration_time - datetime.now()).seconds / 3600)
         else:
             s += "## ポケモン: 0\n"
 

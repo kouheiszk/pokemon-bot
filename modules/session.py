@@ -42,36 +42,37 @@ class Session(object):
     def clean_pokemon(self, threshold_rate=20, delay=5):
         log.info(">> 博士にポケモンを送る...")
 
-        evolvable_pokemon_ids = [Pokedex.PIDGEY.value, Pokedex.RATTATA.value, Pokedex.ZUBAT.value]
-        to_evolve_pokemons = {pokemon_id: [] for pokemon_id in evolvable_pokemon_ids}
+        evolvable_pokedexs = [Pokedex.PIDGEY, Pokedex.CATERPIE, Pokedex.RATTATA, Pokedex.ZUBAT, Pokedex.WEEDLE]
+        evolve_pokemons = {pokedex: [] for pokedex in evolvable_pokedexs}
 
         # 進化コストのかからないポケモン以外を博士に返す
         for _, pokemon in self._state.inventory.party.items():
             # 規定のCP以下のポケモンは博士に返す
             if pokemon.cp < pokemon.max_cp * threshold_rate / 100:
-                if pokemon.pokemon_id in evolvable_pokemon_ids:
-                    to_evolve_pokemons[pokemon.pokemon_id].append(pokemon)
+                if pokemon.pokedex in evolvable_pokedexs:
+                    evolve_pokemons[pokemon.pokedex].append(pokemon)
                     continue
 
                 log.info("> {}を送る (CP:{} < {}x{}%)...".format(pokemon.name, pokemon.cp, pokemon.max_cp, threshold_rate))
                 self._api.release_pokemon(pokemon, delay=delay)
 
         # ポケモンを進化させる
-        for pokemon_id in evolvable_pokemon_ids:
-            if pokemon_id not in self._state.inventory.candies:
-                # キャンディーが無いということはポケモンを捕まえていないということ
+        for pokedex in evolvable_pokedexs:
+            if pokedex.value not in self._state.inventory.candies:
+                # あめが無いということはポケモンを捕まえていないということ
                 continue
 
-            candies = self._state.inventory.candies[pokemon_id]
-            pokemons = to_evolve_pokemons[pokemon_id]
-            # キャンディーの分進化させ、進化後のポケモンを博士に送る
-            while candies // Pokedex(pokemon_id).evolve_candies < len(pokemons):
+            candies = self._state.inventory.candies[pokedex.value]
+            pokemons = evolve_pokemons[pokedex]
+            # あめが足りなく進化できなかったポケモンを博士に送る
+            while candies // pokedex.evolve_candies < len(pokemons):
                 pokemon = pokemons.pop()
                 log.info("> {}を送る...".format(pokemon.name))
                 self._api.release_pokemon(pokemon, delay=delay)
                 candies += 1
+                log.info("< {}のあめ+1, 合計: {}".format(pokemon.name, candies))
 
-            # アメが足りなく進化できなかったポケモンを博士に送る
+            # あめの分進化させ、進化後のポケモンを博士に送る
             for pokemon in pokemons:
                 log.info("> {}を進化...".format(pokemon.name))
                 evolve_result = self._api.evolve_pokemon(self._state, pokemon, delay=delay)
@@ -87,6 +88,7 @@ class Session(object):
         tossable_item_ids = [Item.POTION.value, Item.SUPER_POTION.value, Item.REVIVE.value]
         for item_id in tossable_item_ids:
             if item_id in bag and bag[item_id] > 0:
+                log.info("> {}を捨てる...".format(Item(item_id)))
                 self._api.recycle_inventory_item(self._state, item_id,
                                                  count=bag[item_id],
                                                  delay=delay)
