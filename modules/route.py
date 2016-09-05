@@ -35,9 +35,9 @@ class Route(object):
     @classmethod
     def _create_routes_request_url(cls, positions):
         start = "{},{}".format(positions[0].latitude, positions[0].longitude)
-        end = "{},{}".format(positions[-1].latitude, positions[-1].longitude)
+        end = "{},{}".format(positions[1].latitude, positions[1].longitude)
         routes = ""
-        for position in positions[1:-1]:
+        for position in positions[2:]:
             routes += "{},{}|".format(position.latitude, position.longitude)
         api_base = "https://maps.googleapis.com/maps/api/directions/json"
         routes_url = "{}?mode=walking&origin={}&destination={}&waypoints={}".format(api_base, start, end, routes[:-1])
@@ -45,8 +45,8 @@ class Route(object):
 
     @classmethod
     def _get_routes_data(cls, routes_request_url):
-        log.info("Request Routes...")
-        log.info("Request: {}".format(routes_request_url))
+        log.info(">> ルート検索...")
+        log.info("> 検索中... \n{}".format(routes_request_url))
         response = urllib.request.urlopen(routes_request_url)
         data = json.loads(response.read().decode(response.info().get_param('charset') or 'utf-8'))
         routes_data = data["routes"][0]
@@ -58,6 +58,6 @@ class Route(object):
                                                     step["end_location"]["lat"], step["end_location"]["lng"])
 
         debug_url = "http://maps.googleapis.com/maps/api/staticmap?size=400x400&path={}".format(leg_routes[:-1])
-        log.info("Routes: \n{}".format(debug_url))
+        log.info("<< ルート: \n{}".format(debug_url))
 
         return routes_data

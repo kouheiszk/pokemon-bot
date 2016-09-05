@@ -46,20 +46,26 @@ class Session(object):
         evolve_pokemons = {pokedex: [] for pokedex in evolvable_pokedexs}
 
         # 進化コストのかからないポケモン以外を博士に返す
-        for _, pokemon in self._state.inventory.party.items():
+        party = [pokemon for _, pokemon in self._state.inventory.party.items()]
+        for pokemon in party:
             # 規定のCP以下のポケモンは博士に返す
-            if pokemon.cp < pokemon.max_cp * threshold_rate / 100:
+            if pokemon.cp < pokemon.max_cp * threshold_rate / 100 or pokemon.total_individual < 30:
                 if pokemon.pokedex in evolvable_pokedexs:
                     evolve_pokemons[pokemon.pokedex].append(pokemon)
                     continue
 
-                log.info("> {}を送る (CP:{} < {}x{}%)...".format(pokemon.name, pokemon.cp, pokemon.max_cp, threshold_rate))
+                log.info("> {}を送る (CP:{} < {}x{}% or 個体値合計:{} < 30)...".format(pokemon.name,
+                                                                        pokemon.cp,
+                                                                        pokemon.max_cp,
+                                                                        threshold_rate,
+                                                                        pokemon.total_individual))
                 self._api.release_pokemon(pokemon, delay=delay)
+                self._state.inventory.party.pop(pokemon.id)
 
         # ポケモンを進化させる
         for pokedex in evolvable_pokedexs:
             if pokedex.value not in self._state.inventory.candies:
-                # あめが無いということはポケモンを捕まえていないということ
+                # あめが無いということはポケモンを捕まえていない、あるいは全部つかっちゃったということ
                 continue
 
             candies = self._state.inventory.candies[pokedex.value]
@@ -69,16 +75,18 @@ class Session(object):
                 pokemon = pokemons.pop()
                 log.info("> {}を送る...".format(pokemon.name))
                 self._api.release_pokemon(pokemon, delay=delay)
+                self._state.inventory.party.pop(pokemon.id)
                 candies += 1
                 log.info("< {}のあめ+1, 合計: {}".format(pokemon.name, candies))
 
             # あめの分進化させ、進化後のポケモンを博士に送る
             for pokemon in pokemons:
                 log.info("> {}を進化...".format(pokemon.name))
-                evolve_result = self._api.evolve_pokemon(self._state, pokemon, delay=delay)
-                log.info(evolve_result)
-                log.info("> {}を送る...".format(pokemon.name))
-                self._api.release_pokemon(pokemon, delay=delay)
+                evolve = self._api.evolve_pokemon(self._state, pokemon, delay=delay)
+                log.info(evolve)
+                log.info("> {}を送る...".format(evolve.pokemon.name))
+                self._api.release_pokemon(evolve.pokemon, delay=delay)
+                self._state.inventory.party.pop(pokemon.id)
 
     def clean_inventory(self, delay=5):
         log.info(">> アイテムポーチの中身を整理...")
@@ -132,16 +140,15 @@ class Session(object):
 
         # パーティーがいっぱいの場合
         if encounter.status.is_party_full:
-            raise GeneralPokemonBotException("Can't catch! Party is full!")
+            raise GeneralPokemonBotException("パーティーがいっぱいです!")
 
         # それ以外の場合で捕まえられない場合はNoneを返す
         if not encounter.status.is_catchable:
             return None
 
         # Grab needed data from proto
-        chances = encounter.capture_probability.get("capture_probability", [])
-        balls = encounter.capture_probability.get("pokeball_type", [])
-        balls = balls or [Item.POKE_BALL, Item.GREAT_BALL, Item.ULTRA_BALL]
+        chances = encounter.capture_probability.chances
+        balls = encounter.capture_probability.balls
         bag = self._state.inventory.bag
 
         # Attempt catch

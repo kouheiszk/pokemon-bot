@@ -23,7 +23,8 @@ class HatchedEggs(object):
         if self.eggs:
             while self.eggs:
                 egg = self.eggs.pop()
-                s += "## ポケモン: {}\n".format(self._inventory.party[egg.pokemon_id])
+                pokemon = self._inventory.party[egg.pokemon_id]
+                s += "## ポケモン: {}\n".format(pokemon.name)
                 s += "- 経験値: +{}\n".format(egg.experience)
                 s += "- ほしのすな: +{}\n".format(egg.stardust)
                 s += "- あめ: +{}\n".format(egg.candy)

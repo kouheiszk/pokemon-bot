@@ -3,22 +3,25 @@
 import enum
 import logging
 
+from modules.entities.pokemon import Pokemon
+
 log = logging.getLogger("pokemon_bot")
 
 
 class Evolve(object):
-    def __init__(self, pokemon, d):
+    def __init__(self, base_pokemon, d):
         self.__dict__.update(d)
-        self.pokemon = pokemon
+        self.base_pokemon = base_pokemon
+        self.pokemon = Pokemon(d.get("evolved_pokemon_data", {}))
         self.status = EvolveResult(d.get("result", 0))
 
     def __str__(self):
         s = "\n# 進化\n"
-        s += "## ポケモン: {}\n".format(self.pokemon.name)
+        s += "## ポケモン: {} -> {}\n".format(self.base_pokemon.name, self.pokemon.name)
         s += "## ステータス: {}\n".format(self.status)
         if self.status.is_success:
             s += "## 経験値: +{}XP\n".format(self.experience_awarded)
-            s += "## {}のアメ: +{}\n".format(self.pokemon.name, self.candy_awarded)
+            s += "## {}のアメ: +{}\n".format(self.base_pokemon.name, self.candy_awarded)
 
         return s
 

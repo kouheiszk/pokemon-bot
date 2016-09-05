@@ -10,32 +10,36 @@ log = logging.getLogger("pokemon_bot")
 
 
 class Pokemon(object):
-    def __init__(self, p_dict):
-        self.id = p_dict.get("id", None)
-        self.pokemon_id = p_dict.get("pokemon_id", p_dict.get("pokemon_data", {}).get("pokemon_id"))
+    def __init__(self, d):
+        self.id = d.get("id", None)
+        self.pokemon_id = d.get("pokemon_id", d.get("pokemon_data", {}).get("pokemon_id"))
         self.pokedex = Pokedex(self.pokemon_id)
-        self.stamina = p_dict.get("stamina", 0)
-        self.individual_stamina = p_dict.get("individual_stamina", 0)
-        self.individual_defense = p_dict.get("individual_defense", 0)
-        self.individual_attack = p_dict.get("individual_attack", 0)
-        self.weight_kg = p_dict.get("weight_kg", 0)
-        self.height_m = p_dict.get("height_m", 0)
+        self.stamina = d.get("stamina", 0)
+        self.individual_stamina = d.get("individual_stamina", 0)
+        self.individual_defense = d.get("individual_defense", 0)
+        self.individual_attack = d.get("individual_attack", 0)
+        self.weight_kg = d.get("weight_kg", 0)
+        self.height_m = d.get("height_m", 0)
 
-        last_modified_timestamp_ms = p_dict.get("last_modified_timestamp_ms", None)
-        time_till_hidden_ms = p_dict.get("time_till_hidden_ms", None)
+        last_modified_timestamp_ms = d.get("last_modified_timestamp_ms", None)
+        time_till_hidden_ms = d.get("time_till_hidden_ms", None)
         if last_modified_timestamp_ms and time_till_hidden_ms:
             self.disappear_time = datetime.utcfromtimestamp(
                 (last_modified_timestamp_ms + time_till_hidden_ms) / 1000.0)
         else:
             self.disappear_time = None
 
-        expiration_timestamp_ms = p_dict.get("expiration_timestamp_ms", None)
+        expiration_timestamp_ms = d.get("expiration_timestamp_ms", None)
         if expiration_timestamp_ms:
             self.expiration_time = datetime.utcfromtimestamp(expiration_timestamp_ms / 1000.0)
         else:
             self.expiration_time = None
 
-        self._dict = p_dict
+        self._dict = d
+
+    @property
+    def total_individual(self):
+        return self.individual_stamina + self.individual_defense + self.individual_attack
 
     @property
     def max_cp(self):

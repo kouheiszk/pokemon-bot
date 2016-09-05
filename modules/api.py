@@ -56,8 +56,8 @@ class Api(object):
         response_dict = self._requester.evolve_pokemon(state, delay=delay,
                                                        pokemon_id=pokemon.id)
         evolve_pokemon_dict = response_dict["responses"]["EVOLVE_POKEMON"]
-        log.info("Response dictionary (evolve_pokemon): \n\r{}"
-                 .format(pprint.PrettyPrinter(indent=4).pformat(evolve_pokemon_dict)))
+        log.debug("Response dictionary (evolve_pokemon): \n\r{}"
+                  .format(pprint.PrettyPrinter(indent=4).pformat(evolve_pokemon_dict)))
         return Evolve(pokemon, evolve_pokemon_dict)
 
     def recycle_inventory_item(self, state, item_id, count=0, delay=10):
@@ -218,17 +218,23 @@ class ApiRequester(object):
             response_dict = request.call()
 
             if defaults and state is not None:
-                eggs_dict = response_dict["responses"]["GET_HATCHED_EGGS"]
-                state.hatched_eggs.parse_eggs_dict(eggs_dict)
+                responses = response_dict["responses"]
 
-                inventory_dict = response_dict["responses"]["GET_INVENTORY"]["inventory_delta"]
-                state.inventory.parse_inventory_dict(inventory_dict)
+                eggs_dict = responses.get("GET_HATCHED_EGGS", {})
+                if eggs_dict:
+                    state.hatched_eggs.parse_eggs_dict(eggs_dict)
 
-                badges_dict = response_dict["responses"]["CHECK_AWARDED_BADGES"]
-                state.badges.parse_badges_dict(badges_dict)
+                inventory_dict = responses.get("GET_INVENTORY", {}).get("inventory_delta", {})
+                if inventory_dict:
+                    state.inventory.parse_inventory_dict(inventory_dict)
 
-                settings_dict = response_dict["responses"]["DOWNLOAD_SETTINGS"]["settings"]
-                state.settings.parse_settings_dict(settings_dict)
+                badges_dict = responses.get("CHECK_AWARDED_BADGES", {})
+                if badges_dict:
+                    state.badges.parse_badges_dict(badges_dict)
+
+                settings_dict = responses.get("DOWNLOAD_SETTINGS", {}).get("settings", {})
+                if settings_dict:
+                    state.settings.parse_settings_dict(settings_dict)
 
             return response_dict
 

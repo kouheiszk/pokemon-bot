@@ -3,6 +3,8 @@
 import enum
 import logging
 
+from modules.item import Item
+
 log = logging.getLogger("pokemon_bot")
 
 
@@ -11,13 +13,10 @@ class Encounter(object):
         self.__dict__.update(d)
         self.pokemon = pokemon
         self.status = EncounterResult(self.status)
+        self.capture_probability = CaptureProbability(d.get("capture_probability", {}))
         self.attempt = None
         self.attempt_count = 1
         self.berried = False
-
-    @property
-    def capture_probability(self):
-        return self.__dict__.get("capture_probability", {})
 
     def set_catch_pokemon_dict(self, catch_pokemon_dict):
         self.attempt = PokemonCatchAttempt(catch_pokemon_dict)
@@ -54,6 +53,25 @@ class EncounterResult(enum.Enum):
     @property
     def is_party_full(self):
         return self.value == 7
+
+
+class CaptureProbability(object):
+    def __init__(self, d):
+        self.__dict__.update(d)
+
+    @property
+    def chances(self):
+        if hasattr(self, "capture_probability"):
+            return self.capture_probability
+        else:
+            return []
+
+    @property
+    def balls(self):
+        if hasattr(self, "pokeball_type"):
+            return self.pokeball_type
+        else:
+            return [Item.POKE_BALL, Item.GREAT_BALL, Item.ULTRA_BALL]
 
 
 class PokemonCatchAttempt(object):
