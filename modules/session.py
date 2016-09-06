@@ -49,16 +49,16 @@ class Session(object):
         party = [pokemon for _, pokemon in self._state.inventory.party.items()]
         for pokemon in party:
             # 規定のCP以下のポケモンは博士に返す
-            if pokemon.cp < pokemon.max_cp * threshold_rate / 100 or pokemon.total_individual < 30:
+            # if pokemon.cp < pokemon.max_cp * threshold_rate / 100 or pokemon.is_weak:
+            if pokemon.is_weak:
                 if pokemon.pokedex in evolvable_pokedexs:
                     evolve_pokemons[pokemon.pokedex].append(pokemon)
                     continue
 
-                log.info("> {}を送る (CP:{} < {}x{}% or 個体値合計:{} < 30)...".format(pokemon.name,
+                log.info("> {}を送る (CP:{} < {}x{}% or 個体値が低い)...".format(pokemon.name,
                                                                         pokemon.cp,
                                                                         pokemon.max_cp,
-                                                                        threshold_rate,
-                                                                        pokemon.total_individual))
+                                                                        threshold_rate))
                 self._api.release_pokemon(pokemon, delay=delay)
                 self._state.inventory.party.pop(pokemon.id)
 

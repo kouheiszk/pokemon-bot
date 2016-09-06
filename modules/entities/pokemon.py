@@ -38,8 +38,8 @@ class Pokemon(object):
         self._dict = d
 
     @property
-    def total_individual(self):
-        return self.individual_stamina + self.individual_defense + self.individual_attack
+    def is_weak(self):
+        return self.individual_stamina < 10 or self.individual_defense < 10 or self.individual_attack < 10
 
     @property
     def max_cp(self):
