@@ -72,11 +72,11 @@ def main():
             time.sleep(cooldown)
             cooldown *= 2
 
-        # except Exception as e:
-        #     log.critical('Exception raised: : {0} \n {1}'.format(e, traceback.format_exc()))
-        #     # 再認証したほうがいいかも？
-        #     time.sleep(cooldown)
-        #     cooldown *= 2
+            # except Exception as e:
+            #     log.critical('Exception raised: : {0} \n {1}'.format(e, traceback.format_exc()))
+            #     # 再認証したほうがいいかも？
+            #     time.sleep(cooldown)
+            #     cooldown *= 2
 
 
 if __name__ == "__main__":

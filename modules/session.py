@@ -39,26 +39,22 @@ class Session(object):
         self._api.get_map_objects(self._state, cell_ids=cell_ids, delay=delay)
         return self._state.map_objects
 
-    def clean_pokemon(self, threshold_rate=20, delay=5):
+    def clean_pokemon(self, delay=5):
         log.info(">> 博士にポケモンを送る...")
 
         evolvable_pokedexs = [Pokedex.PIDGEY, Pokedex.CATERPIE, Pokedex.RATTATA, Pokedex.ZUBAT, Pokedex.WEEDLE]
         evolve_pokemons = {pokedex: [] for pokedex in evolvable_pokedexs}
 
-        # 進化コストのかからないポケモン以外を博士に返す
         party = [pokemon for _, pokemon in self._state.inventory.party.items()]
         for pokemon in party:
-            # 規定のCP以下のポケモンは博士に返す
-            # if pokemon.cp < pokemon.max_cp * threshold_rate / 100 or pokemon.is_weak:
-            if pokemon.is_weak:
-                if pokemon.pokedex in evolvable_pokedexs:
-                    evolve_pokemons[pokemon.pokedex].append(pokemon)
-                    continue
+            # 進化させ経験値にするポケモンは送らない
+            if pokemon.pokedex in evolvable_pokedexs:
+                evolve_pokemons[pokemon.pokedex].append(pokemon)
+                continue
 
-                log.info("> {}を送る (CP:{} < {}x{}% or 個体値が低い)...".format(pokemon.name,
-                                                                        pokemon.cp,
-                                                                        pokemon.max_cp,
-                                                                        threshold_rate))
+            # 弱い / 強いが強化にコストが掛かり過ぎる ポケモンを博士に返す
+            if pokemon.is_weak or (not pokemon.is_evelvable and pokemon.cp < pokemon.max_cp * 0.2):
+                log.info("> {}を送る...".format(pokemon.name))
                 self._api.release_pokemon(pokemon, delay=delay)
                 self._state.inventory.party.pop(pokemon.id)
 

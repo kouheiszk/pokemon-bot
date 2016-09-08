@@ -42,6 +42,10 @@ class Pokemon(object):
         return self.individual_stamina < 10 or self.individual_defense < 10 or self.individual_attack < 10
 
     @property
+    def is_evelvable(self):
+        return self.pokedex.evolves is not None
+
+    @property
     def max_cp(self):
         return self.pokedex.max_cp
 
