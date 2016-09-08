@@ -29,13 +29,15 @@ class Player(object):
 
 
 class Team(enum.Enum):
-    yellow = 0
-    blue = 1
-    red = 2
+    NONE = 0
+    YELLOW = 1
+    BLUE = 2
+    RED = 3
 
     @property
     def to_jp(self):
-        teams = ["黄チーム",
+        teams = ["未所属",
+                 "黄チーム",
                  "青チーム",
                  "赤チーム"]
         return teams[self.value]

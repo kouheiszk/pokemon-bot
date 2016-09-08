@@ -238,6 +238,38 @@ class Pokedex(enum.Enum):
         return costs[self]
 
     @property
+    def evolves(self):
+        map = {Pokedex.BULBASAUR: Pokedex.IVYSAUR, Pokedex.IVYSAUR: Pokedex.VENUSAUR,
+               Pokedex.CHARMANDER: Pokedex.CHARMELEON, Pokedex.CHARMELEON: Pokedex.CHARIZARD,
+               Pokedex.SQUIRTLE: Pokedex.WARTORTLE, Pokedex.WARTORTLE: Pokedex.BLASTOISE,
+               Pokedex.CATERPIE: Pokedex.METAPOD, Pokedex.METAPOD: Pokedex.BUTTERFREE, Pokedex.WEEDLE: Pokedex.KAKUNA,
+               Pokedex.KAKUNA: Pokedex.BEEDRILL, Pokedex.PIDGEY: Pokedex.PIDGEOTTO, Pokedex.PIDGEOTTO: Pokedex.PIDGEOT,
+               Pokedex.RATTATA: Pokedex.RATICATE, Pokedex.SPEAROW: Pokedex.FEAROW, Pokedex.EKANS: Pokedex.ARBOK,
+               Pokedex.PIKACHU: Pokedex.RAICHU, Pokedex.SANDSHREW: Pokedex.SANDSLASH,
+               Pokedex.NIDORAN_FEMALE: Pokedex.NIDORINA, Pokedex.NIDORINA: Pokedex.NIDOQUEEN,
+               Pokedex.NIDORAN_MALE: Pokedex.NIDORINO, Pokedex.NIDORINO: Pokedex.NIDOKING,
+               Pokedex.CLEFAIRY: Pokedex.CLEFABLE, Pokedex.VULPIX: Pokedex.NINETALES,
+               Pokedex.JIGGLYPUFF: Pokedex.WIGGLYTUFF, Pokedex.ZUBAT: Pokedex.GOLBAT, Pokedex.ODDISH: Pokedex.GLOOM,
+               Pokedex.GLOOM: Pokedex.VILEPLUME, Pokedex.PARAS: Pokedex.PARASECT, Pokedex.VENONAT: Pokedex.VENOMOTH,
+               Pokedex.DIGLETT: Pokedex.DUGTRIO, Pokedex.MEOWTH: Pokedex.PERSIAN, Pokedex.PSYDUCK: Pokedex.GOLDUCK,
+               Pokedex.MANKEY: Pokedex.PRIMEAPE, Pokedex.GROWLITHE: Pokedex.ARCANINE,
+               Pokedex.POLIWAG: Pokedex.POLIWHIRL, Pokedex.POLIWHIRL: Pokedex.POLIWRATH, Pokedex.ABRA: Pokedex.KADABRA,
+               Pokedex.KADABRA: Pokedex.ALAKAZAM, Pokedex.MACHOP: Pokedex.MACHOKE, Pokedex.MACHOKE: Pokedex.MACHAMP,
+               Pokedex.BELLSPROUT: Pokedex.WEEPINBELL, Pokedex.WEEPINBELL: Pokedex.VICTREEBEL,
+               Pokedex.TENTACOOL: Pokedex.TENTACRUEL, Pokedex.GEODUDE: Pokedex.GRAVELER,
+               Pokedex.GRAVELER: Pokedex.GOLEM, Pokedex.PONYTA: Pokedex.RAPIDASH, Pokedex.SLOWPOKE: Pokedex.SLOWBRO,
+               Pokedex.MAGNEMITE: Pokedex.MAGNETON, Pokedex.DODUO: Pokedex.DODRIO, Pokedex.SEEL: Pokedex.DEWGONG,
+               Pokedex.GRIMER: Pokedex.MUK, Pokedex.SHELLDER: Pokedex.CLOYSTER, Pokedex.GASTLY: Pokedex.HAUNTER,
+               Pokedex.HAUNTER: Pokedex.GENGAR, Pokedex.DROWZEE: Pokedex.HYPNO, Pokedex.KRABBY: Pokedex.KINGLER,
+               Pokedex.VOLTORB: Pokedex.ELECTRODE, Pokedex.EXEGGCUTE: Pokedex.EXEGGUTOR,
+               Pokedex.CUBONE: Pokedex.MAROWAK, Pokedex.KOFFING: Pokedex.WEEZING, Pokedex.RHYHORN: Pokedex.RHYDON,
+               Pokedex.HORSEA: Pokedex.SEADRA, Pokedex.GOLDEEN: Pokedex.SEAKING, Pokedex.STARYU: Pokedex.STARMIE,
+               Pokedex.MAGIKARP: Pokedex.GYARADOS, Pokedex.EEVEE: Pokedex.VAPOREON, Pokedex.EEVEE: Pokedex.JOLTEON,
+               Pokedex.EEVEE: Pokedex.FLAREON, Pokedex.OMANYTE: Pokedex.OMASTAR, Pokedex.KABUTO: Pokedex.KABUTOPS,
+               Pokedex.DRATINI: Pokedex.DRAGONAIR, Pokedex.DRAGONAIR: Pokedex.DRAGONITE}
+        return map.get(self, None)
+
+    @property
     def rarity(self):
         rarities = {}
         rarities[Rarity.MYTHIC] = [Pokedex.MEW]
@@ -602,19 +634,19 @@ class Rarity(enum.Enum):
     def __str__(self):
         if self.value == 0:
             return "E"
-        elif self.value == 0:
+        elif self.value == 1:
             return "D"
-        elif self.value == 0:
+        elif self.value == 2:
             return "C"
-        elif self.value == 0:
+        elif self.value == 3:
             return "B"
-        elif self.value == 0:
+        elif self.value == 4:
             return "A"
-        elif self.value == 0:
+        elif self.value == 5:
             return "S"
-        elif self.value == 0:
+        elif self.value == 6:
             return "SS"
-        elif self.value == 0:
+        elif self.value == 7:
             return "SSS"
         else:
             return "???"

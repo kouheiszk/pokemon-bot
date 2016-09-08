@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import logging
 import pprint
+import random
 import time
 
 from pgoapi import pgoapi, utilities
@@ -197,7 +198,7 @@ class ApiRequester(object):
             log.debug("Cooldown... {}sec to do...".format(delta))
             time.sleep(delta)
 
-        self._request_available_time = time.time() + delay
+        self._request_available_time = time.time() + delay + random.randint(0, 3)
 
         # リクエスト作成
         req = self._api.create_request()
