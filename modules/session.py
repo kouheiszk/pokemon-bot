@@ -255,7 +255,7 @@ class Session(object):
                              step=step,
                              catch_on_way=catch_on_way)
 
-    def walk_to(self, olatitude, olongitude, epsilon=10, step=3.2, delay=10, catch_on_way=True):
+    def walk_to(self, olatitude, olongitude, epsilon=10, step=3.2, delay=20, catch_on_way=True):
         if step >= epsilon:
             raise GeneralPokemonBotException("Walk may never converge")
 
@@ -269,7 +269,7 @@ class Session(object):
         d_lon = (longitude - olongitude) / divisions
 
         log.info("{}までの距離{:.2f}m. 徒歩{:.1f}秒. 現在位置: {}..."
-                 .format("ポケストップ" if catch_on_way else "ポケモン", dist, dist / step, self.location))
+                 .format("目的地" if catch_on_way else "ポケモン", dist, dist / step, self.location))
 
         steps = 1
         while dist > epsilon:
