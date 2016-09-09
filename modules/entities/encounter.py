@@ -77,7 +77,10 @@ class CaptureProbability(object):
 class PokemonCatchAttempt(object):
     def __init__(self, d):
         self.__dict__.update(d)
-        self.status = PokemonCatchResult(self.status)
+        status = d.get("status", 0)
+        if status == 0:
+            log.info("PokemonCatchAttempt ERROR : {}".format(d))
+        self.status = PokemonCatchResult(status)
 
 
 class PokemonCatchResult(enum.Enum):

@@ -120,7 +120,10 @@ class Session(object):
         log.info(">> {}捕獲開始...".format(pokemon.name))
         self.walk_on(route, catch_on_way=catch_on_way)
         result = self.encounter_and_catch(pokemon)
-        log.info(result)
+        if result:
+            log.info(result)
+        else:
+            log.info("< 捕獲失敗")
         # ポケモンを捕まえた後はしばらく休む
         time.sleep(delay)
 
