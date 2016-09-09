@@ -227,7 +227,7 @@ class Session(object):
     def set_coordinates(self, latitude, longitude, catch_on_way=True):
         self.location.set_position(latitude, longitude)
         self._api.set_coordinates(self.location.position)
-        map_objects = self.get_map_objects(radius=1, delay=1)
+        map_objects = self.get_map_objects(radius=3, delay=5)
 
         # 移動途中に在るスピン可能範囲内のポケストップは回す
         for pokestop in map_objects.get_spinable_pokestops(self.location.latitude, self.location.longitude):
@@ -291,5 +291,5 @@ class Session(object):
         steps -= 1
         if steps % delay > 0 and not catch_on_way:
             delta = delay - steps
-            time.sleep(delta)
+            time.sleep(max(delta, 10))
             self.set_coordinates(latitude, longitude, catch_on_way=False)
