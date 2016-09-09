@@ -240,7 +240,7 @@ class Session(object):
             for pokemon in (map_objects.wild_pokemons + map_objects.catchable_pokemons):
                 self.walk_and_catch(Route(pokemon), catch_on_way=False)
 
-    def walk_on(self, route, epsilon=10, step=2.4, catch_on_way=True):
+    def walk_on(self, route, epsilon=8, step=2.4, catch_on_way=True):
         if route.legs is None:
             self.walk_to(route.instance.latitude,
                          route.instance.longitude,
