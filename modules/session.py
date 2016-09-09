@@ -200,9 +200,9 @@ class Session(object):
         self.walk_on(route)
         self.spin_pokestop(route.instance)
 
-    def spin_pokestop(self, pokestop, delay=2):
-        details = self._api.get_fort_details(self._state, pokestop, delay=delay)
-        fort_search_dict = self._api.get_fort_search(self._state, pokestop, delay=delay)
+    def spin_pokestop(self, pokestop):
+        details = self._api.get_fort_details(self._state, pokestop, delay=4)
+        fort_search_dict = self._api.get_fort_search(self._state, pokestop, delay=6)
         details.set_fort_search_dict(fort_search_dict)
         log.info(">> ポケストップをスピン...")
         log.info("{}".format(details))
@@ -234,7 +234,7 @@ class Session(object):
 
         # 移動途中に在るスピン可能範囲内のポケストップは回す
         for pokestop in map_objects.get_spinable_pokestops(self.location.latitude, self.location.longitude):
-            self.spin_pokestop(pokestop, delay=5)
+            self.spin_pokestop(pokestop)
 
         if catch_on_way and (map_objects.wild_pokemons or map_objects.catchable_pokemons):
             log.info(">> マップを取得...")
