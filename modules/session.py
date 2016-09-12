@@ -88,28 +88,22 @@ class Session(object):
         log.info(">> アイテムポーチの中身を整理...")
         bag = self._state.inventory.bag
 
-        # Clear out all of a crtain type
-        tossable_item_ids = [Item.POTION.value, Item.SUPER_POTION.value, Item.REVIVE.value]
-        for item_id in tossable_item_ids:
-            if item_id in bag and bag[item_id] > 0:
-                log.info("> {}を捨てる...".format(Item(item_id)))
-                self._api.recycle_inventory_item(self._state, item_id,
-                                                 count=bag[item_id],
-                                                 delay=delay)
-
-        # Limit a certain type
+        # 指定された数以外のアイテムを消す
         limited_items = {
-            Item.POKE_BALL.value: 50,
-            Item.GREAT_BALL.value: 100,
-            Item.ULTRA_BALL.value: 150,
-            Item.RAZZ_BERRY.value: 25
+            Item.POKE_BALL: 40,
+            Item.GREAT_BALL: 80,
+            Item.ULTRA_BALL: 120,
+            Item.RAZZ_BERRY: 25,
+            Item.POTION: 20,
+            Item.SUPER_POTION: 40,
+            Item.HYPER_POTION: 80,
+            Item.REVIVE: 30
         }
-        for item_id in limited_items:
-            if item_id in bag and bag[item_id] > limited_items[item_id]:
-                log.debug("> {}を捨てる...".format(Item(item_id)))
-                self._api.recycle_inventory_item(self._state, item_id,
-                                                 count=(bag[item_id] - limited_items[item_id]),
-                                                 delay=delay)
+        for item in limited_items:
+            if item in bag and bag[item] > limited_items[item]:
+                count = bag[item] - limited_items[item]
+                log.info("> {}を捨てる... {} -> {}".format(Item(item), bag[item], limited_items[item]))
+                self._api.recycle_inventory_item(self._state, item, count=count, delay=delay)
 
     def walk_and_catch(self, route, delay=10, catch_on_way=True):
         pokemon = route.instance

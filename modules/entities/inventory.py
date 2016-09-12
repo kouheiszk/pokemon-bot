@@ -77,7 +77,7 @@ class Inventory(object):
 
                 bag_item = data.get("item", None)
                 if bag_item:
-                    self.bag[bag_item.get("item_id")] = bag_item.get("count", 0)
+                    self.bag[Item(bag_item.get("item_id"))] = bag_item.get("count", 0)
                     continue
 
     def __getattr__(self, attr):
@@ -103,13 +103,13 @@ class Inventory(object):
         for _, egg in self.eggs.items():
             if egg.egg_incubator_id:
                 s += "- {}km ({}の中)\n".format(egg.egg_km_walked_target - egg.egg_km_walked_start,
-                                             self.incubators[egg.egg_incubator_id])
+                                              self.incubators[egg.egg_incubator_id])
             else:
                 s += "- {}km\n".format(egg.egg_km_walked_target)
 
         s += "## バッグ:\n"
-        for key in self.bag:
-            s += "- {}: {}\n".format(Item(key), self.bag[key])
+        for item in self.bag:
+            s += "- {}: {}\n".format(item, self.bag[item])
 
         s += "## ふかそうち:\n"
         for _, incubator in self.incubators.items():

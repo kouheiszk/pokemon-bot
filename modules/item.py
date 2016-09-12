@@ -68,7 +68,7 @@ class Item(enum.Enum):
         elif self.value == 404:
             return "INCENSE_FLORAL"
         elif self.value == 501:
-            return "TROY_DISK"
+            return "ルアーモジュール"
         elif self.value == 602:
             return "X_ATTACK"
         elif self.value == 603:

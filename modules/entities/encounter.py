@@ -69,7 +69,7 @@ class CaptureProbability(object):
     @property
     def balls(self):
         if hasattr(self, "pokeball_type"):
-            return self.pokeball_type
+            return [Item(item_id) for item_id in self.pokeball_type]
         else:
             return [Item.POKE_BALL, Item.GREAT_BALL, Item.ULTRA_BALL]
 

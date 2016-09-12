@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 import logging
 
+from modules.item import Item
+
 log = logging.getLogger("pokemon_bot")
 
 
@@ -19,6 +21,6 @@ class Incubator(object):
 
     def __str__(self):
         if self.uses_remaining:
-            return "ふかそうち（あと{}回）".format(self.uses_remaining)
+            return "{}（あと{}回）".format(Item.INCUBATOR_BASIC, self.uses_remaining)
         else:
-            return "ムゲンふかそうち"
+            return "{}".format(Item.INCUBATOR_BASIC_UNLIMITED)

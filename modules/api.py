@@ -61,11 +61,11 @@ class Api(object):
                   .format(pprint.PrettyPrinter(indent=4).pformat(evolve_pokemon_dict)))
         return Evolve(pokemon, evolve_pokemon_dict)
 
-    def recycle_inventory_item(self, state, item_id, count=0, delay=10):
+    def recycle_inventory_item(self, state, item, count=0, delay=10):
         log.debug("Call RECYCLE_INVNETORY_ITEM...")
         if count > 0:
             response_dict = self._requester.recycle_inventory_item(state, delay=delay,
-                                                                   item_id=item_id,
+                                                                   item_id=item.value,
                                                                    count=count)
             recycle_inventory_item_dict = response_dict["responses"]["RECYCLE_INVENTORY_ITEM"]
         else:
@@ -86,15 +86,15 @@ class Api(object):
                   .format(pprint.PrettyPrinter(indent=4).pformat(encounter_dict)))
         return Encounter(pokemon, encounter_dict)
 
-    def use_item_capture(self, item_id, pokemon, delay=10):
-        log.info("Call USE_ITEM_CAPTURE...")
+    def use_item_capture(self, item, pokemon, delay=10):
+        log.debug("Call USE_ITEM_CAPTURE...")
         response_dict = self._requester.use_item_capture(defaults=False, delay=delay,
-                                                         item_id=item_id,
+                                                         item_id=item.value,
                                                          encounter_id=pokemon.encounter_id,
                                                          spawn_point_id=pokemon.spawn_point_id)
         use_item_capture_dict = response_dict["responses"]["USE_ITEM_CAPTURE"]
-        log.info("Response dictionary (use_item_capture): \n\r{}"
-                 .format(pprint.PrettyPrinter(indent=4).pformat(use_item_capture_dict)))
+        log.debug("Response dictionary (use_item_capture): \n\r{}"
+                  .format(pprint.PrettyPrinter(indent=4).pformat(use_item_capture_dict)))
         return use_item_capture_dict
 
     def catch_pokemon(self, state, pokemon,
@@ -107,7 +107,7 @@ class Api(object):
         log.debug("Call CATCH_POKEMON...")
         response_dict = self._requester.catch_pokemon(state, delay=delay,
                                                       encounter_id=pokemon.encounter_id,
-                                                      pokeball=pokeball,
+                                                      pokeball=pokeball.value,
                                                       normalized_reticle_size=normalized_reticle_size,
                                                       spawn_point_id=pokemon.spawn_point_id,
                                                       hit_pokemon=hit_pokemon,
@@ -219,7 +219,12 @@ class ApiRequester(object):
             response_dict = request.call()
 
             if defaults and state is not None:
-                responses = response_dict["responses"]
+                responses = response_dict.get("responses", {})
+
+                if not bool(responses):
+                    log.info("#########################################")
+                    log.info(response_dict)
+                    exit(1)
 
                 eggs_dict = responses.get("GET_HATCHED_EGGS", {})
                 if eggs_dict:
